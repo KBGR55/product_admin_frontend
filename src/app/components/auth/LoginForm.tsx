@@ -1,10 +1,10 @@
-// src/app/components/auth/LoginForm.tsx
 'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
+import { EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, } from '@heroicons/react/24/outline'
+import { establecerToken, peticionPost } from '@/ utilities/api'
 
 export default function LoginForm() {
   const router = useRouter()
@@ -20,131 +20,101 @@ export default function LoginForm() {
     setLoading(true)
 
     try {
-      const response = await fetch('http://localhost:6543/api/accounts/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
+      const response = await peticionPost<{ token: string, user_id: number }>('accounts/login', { email, password, })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || 'Error en el inicio de sesión')
+      if (!response.ok || !response.data) {
+        setError(response.message || 'Error en el inicio de sesión')
         return
       }
-
-      // Guardar token en localStorage
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('user_id', data.user_id)
-
-      // Redirigir al dashboard
+      // Guardar token de forma centralizada
+      establecerToken(response.data.token, response.data.user_id)
       router.push('/dashboard')
     } catch {
-  setError('Error de conexión con el servidor')
-} finally {
+      setError('Error inesperado al iniciar sesión')
+    } finally {
       setLoading(false)
     }
   }
 
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-xl p-8">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Bienvenido</h1>
-            <p className="text-gray-600 mt-2">Inicia sesión en tu cuenta</p>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-              <div className="text-red-600 mt-0.5">⚠️</div>
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
-          )}
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Correo Electrónico
-              </label>
-              <div className="relative">
-                <EnvelopeIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu@email.com"
-                  required
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Contraseña
-              </label>
-              <div className="relative">
-                <LockClosedIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full pl-10 pr-12 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? (
-                    <EyeSlashIcon className="h-5 w-5" />
-                  ) : (
-                    <EyeIcon className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-2.5 rounded-lg transition-colors duration-200"
-            >
-              {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="my-6 relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">¿No tienes cuenta?</span>
-            </div>
-          </div>
-
-          {/* Register Link */}
-          <Link
-            href="/auth/register"
-            className="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-2.5 rounded-lg transition-colors duration-200"
-          >
-            Crear una cuenta
-          </Link>
+    <div className="auth-wrapper">
+      <div className="auth-card">
+        {/* Header */}
+        <div className="auth-header">
+          <h1 className="auth-title">Bienvenido</h1>
+          <p className="auth-subtitle">Inicia sesión en tu cuenta</p>
         </div>
+
+        {/* Error */}
+        {error && (
+          <div className="auth-error">
+            <span className="text-red-600">⚠️</span>
+            <p className="auth-error-text">{error}</p>
+          </div>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email */}
+          <div className="form-group">
+            <label className="form-label">Correo Electrónico</label>
+            <div className="input-wrapper">
+              <EnvelopeIcon className="input-icon" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu@email.com"
+                required
+                className="input"
+              />
+            </div>
+          </div>
+
+          {/* Password */}
+          <div className="form-group">
+            <label className="form-label">Contraseña</label>
+            <div className="input-wrapper">
+              <LockClosedIcon className="input-icon" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="input input-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="input-action"
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" disabled={loading} className="btn-auth">
+            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+          </button>
+        </form>
+
+        {/* Divider */}
+        <div className="auth-divider">
+          <div className="absolute inset-0 flex items-center">
+            <div className="auth-divider-line"></div>
+          </div>
+          <div className="relative flex justify-center">
+            <span className="auth-divider-text">¿No tienes cuenta?</span>
+          </div>
+        </div>
+
+        <Link href="/auth/register" className="btn-auth-secondary">Crear una cuenta </Link>
       </div>
     </div>
   )

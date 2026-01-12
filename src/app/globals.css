@@ -133,4 +133,97 @@ body {
   .landing-footer {
     @apply py-6 text-center text-sm text-gray-500;
   }
+  /* ===== AUTH ===== */
+
+  .auth-wrapper {
+    @apply min-h-screen flex items-center justify-center p-4;
+    background: linear-gradient(
+      135deg,
+      theme('colors.blue.50'),
+      theme('colors.indigo.100')
+    );
+  }
+
+  .auth-card {
+    @apply w-full max-w-md bg-white rounded-xl shadow-xl p-8;
+  }
+
+  .auth-header {
+    @apply text-center mb-8;
+  }
+
+  .auth-title {
+    @apply text-3xl font-bold text-gray-900;
+  }
+
+  .auth-subtitle {
+    @apply text-gray-600 mt-2;
+  }
+
+  .auth-error {
+    @apply mb-6 p-4 bg-red-50 border border-red-200
+           rounded-lg flex items-start gap-3;
+  }
+
+  .auth-error-text {
+    @apply text-red-700 text-sm;
+  }
+
+  .form-group {
+    @apply space-y-2;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-gray-700;
+  }
+
+  .input-wrapper {
+    @apply relative;
+  }
+
+  .input-icon {
+    @apply absolute left-3 top-3.5 h-5 w-5 text-gray-400;
+  }
+
+  .input {
+    @apply w-full pl-10 pr-4 py-2.5 border border-gray-300
+           rounded-lg focus:outline-none focus:ring-2
+           focus:ring-indigo-500 focus:border-transparent;
+  }
+
+  .input-password {
+    @apply pr-12;
+  }
+
+  .input-action {
+    @apply absolute right-3 top-3.5 text-gray-400
+           hover:text-gray-600;
+  }
+
+  .btn-auth {
+    @apply w-full bg-indigo-600 hover:bg-indigo-700
+           disabled:bg-indigo-400 text-white
+           font-semibold py-2.5 rounded-lg
+           transition-colors;
+  }
+
+  .auth-divider {
+    @apply my-6 relative;
+  }
+
+  .auth-divider-line {
+    @apply w-full border-t border-gray-300;
+  }
+
+  .auth-divider-text {
+    @apply px-2 bg-white text-gray-500 text-sm;
+  }
+
+  .btn-auth-secondary {
+    @apply block w-full text-center bg-gray-100
+           hover:bg-gray-200 text-gray-900
+           font-semibold py-2.5 rounded-lg
+           transition-colors;
+  }
+
 }
