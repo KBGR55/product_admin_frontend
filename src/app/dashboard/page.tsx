@@ -1,25 +1,15 @@
-// src/app/dashboard/page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/app/components/Navbar'
+
 import { PlusIcon, BuildingOfficeIcon } from '@heroicons/react/24/outline'
+import { Organization } from '@/types/organization'
+import { getToken, peticionGet } from '@/ utilities/api'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6543'
-
-interface Organization {
-  id: number
-  name: string
-  email: string
-  legal_name: string
-  org_type: string
-  description: string
-  primary_color: string
-  secondary_color: string
-  tertiary_color: string
-  employee_count: number
-  created_at: string
+interface OrganizationsResponse {
+  organizations: Organization[]
 }
 
 export default function Dashboard() {
@@ -27,51 +17,52 @@ export default function Dashboard() {
   const [organizations, setOrganizations] = useState<Organization[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [token, setToken] = useState('')
 
   useEffect(() => {
-    // Obtener token del localStorage
-    const storedToken = localStorage.getItem('token')
-    if (!storedToken) {
+    const token = getToken()
+    if (!token) {
       router.push('/auth/login')
       return
     }
 
-    setToken(storedToken)
-    fetchOrganizations(storedToken)
+    fetchOrganizations()
   }, [router])
 
-  const fetchOrganizations = async (authToken: string) => {
+  /**
+   * Obtener organizaciones del usuario
+   */
+  const fetchOrganizations = async (): Promise<void> => {
     try {
       setLoading(true)
-      const response = await fetch(`${API_URL}/api/organizations`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-      })
+      setError('')
 
-      const data = await response.json()
+      const response = await peticionGet<OrganizationsResponse>('organizations')
 
       if (!response.ok) {
-        setError(data.error || 'Error al cargar organizaciones')
+        setError(response.message || 'Error al cargar organizaciones')
         return
       }
 
-      setOrganizations(data.organizations || [])
-    } catch {
+      setOrganizations(response.data?.organizations || [])
+    } catch (err) {
+      console.error('Error en fetchOrganizations:', err)
       setError('Error de conexión con el servidor')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleCreateOrg = () => {
+  /**
+   * Crear nueva organización
+   */
+  const handleCreateOrg = (): void => {
     router.push('/organizations/create')
   }
 
-  const handleSelectOrg = (orgId: number) => {
+  /**
+   * Seleccionar organización
+   */
+  const handleSelectOrg = (orgId: number): void => {
     router.push(`/organizations/${orgId}`)
   }
 
@@ -85,7 +76,9 @@ export default function Dashboard() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Mis Organizaciones</h1>
-              <p className="text-gray-600 mt-2">Selecciona una organización para administrar productos</p>
+              <p className="text-gray-600 mt-2">
+                Selecciona una organización para administrar productos
+              </p>
             </div>
             <button
               onClick={handleCreateOrg}
@@ -119,7 +112,9 @@ export default function Dashboard() {
           <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
             <BuildingOfficeIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Sin organizaciones</h2>
-            <p className="text-gray-600 mb-6">Aún no tienes organizaciones. Crea una nueva para comenzar.</p>
+            <p className="text-gray-600 mb-6">
+              Aún no tienes organizaciones. Crea una nueva para comenzar.
+            </p>
             <button
               onClick={handleCreateOrg}
               className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
@@ -145,7 +140,7 @@ export default function Dashboard() {
                   style={{
                     background: `linear-gradient(135deg, ${org.primary_color} 0%, ${org.secondary_color} 100%)`,
                   }}
-                ></div>
+                />
 
                 {/* Content */}
                 <div className="p-6">
@@ -187,4 +182,3 @@ export default function Dashboard() {
     </div>
   )
 }
-

@@ -74,7 +74,7 @@ export default function RegisterForm() {
     try {
       // Step 1: Crear usuario
       console.log('Creando usuario...')
-      const userResponse = await fetch(`${API_URL}/api/users`, {
+      const userResponse = await fetch(`${API_URL}/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ export default function RegisterForm() {
 
       // Step 2: Crear cuenta con email y contraseña
       console.log('Creando cuenta...')
-      const accountResponse = await fetch(`${API_URL}/api/accounts/register`, {
+      const accountResponse = await fetch(`${API_URL}/accounts/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ export default function RegisterForm() {
 
       // Step 3: Login automático
       console.log('Iniciando sesión...')
-      const loginResponse = await fetch(`${API_URL}/api/accounts/login`, {
+      const loginResponse = await fetch(`${API_URL}/accounts/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

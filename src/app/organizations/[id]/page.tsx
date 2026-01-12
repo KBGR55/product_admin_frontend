@@ -1,0 +1,326 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import Navbar from '@/app/components/Navbar'
+import CreateProductModal from '@/app/components/CreateProductModal'
+import ProductDetailModal from '@/app/components/ProductDetailModal'
+import { PlusIcon, TrashIcon, ArrowLeftIcon, EyeIcon } from '@heroicons/react/24/outline'
+import { getToken, peticionDelete, peticionGet } from '@/ utilities/api'
+import { Organization, OrganizationEmployee } from '@/types/organization'
+import { Product, ProductsResponse } from '@/types/product'
+
+export default function OrganizationProducts() {
+    const router = useRouter()
+    const params = useParams()
+    const orgId = params?.id as string
+
+    const [organization, setOrganization] = useState<Organization | null>(null)
+    const [products, setProducts] = useState<Product[]>([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
+    const [token, setToken] = useState('')
+    const [deletingId, setDeletingId] = useState<number | null>(null)
+    const [isVendor, setIsVendor] = useState(false)
+    const [showCreateModal, setShowCreateModal] = useState(false)
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+    const [showDetailModal, setShowDetailModal] = useState(false)
+
+    useEffect(() => {
+        if (!orgId) return
+
+        const storedToken = getToken()
+        if (!storedToken) {
+            router.push('/auth/login')
+            return
+        }
+
+        setToken(storedToken)
+        checkVendorRole()
+        fetchData()
+    }, [orgId])
+
+    const checkVendorRole = async () => {
+ try {
+    // Obtener empleados de la organización
+    const response = await peticionGet<{
+      employees: OrganizationEmployee[]
+    }>(`organizations/${orgId}/employees`)
+
+    if (!response.ok) {
+      setIsVendor(false)
+      return
+    }
+
+    const employees = response.data?.employees || []
+    
+    // Verificar si el usuario actual tiene rol de "Vendedor"
+const hasVendorRole = employees.some(emp => 
+  emp.roles.some(role => role.toLowerCase() === 'vendedor')
+)
+
+
+    setIsVendor(hasVendorRole)
+  } catch {
+    setIsVendor(false)
+  }
+    }
+
+    const fetchData = async () => {
+        try {
+            setLoading(true)
+            // Obtener organización
+            const orgResponse = await peticionGet<Organization>(`organizations/${orgId}`)
+
+            if (orgResponse.ok && orgResponse.data) {
+                setOrganization(orgResponse.data)
+            }
+
+            // Obtener productos
+            const productsResponse = await peticionGet<ProductsResponse>(`organizations/${orgId}/products`)
+            if (!productsResponse.ok) {
+                setError(productsResponse.error || 'Error al cargar productos')
+                return
+            }
+            setProducts(productsResponse.data?.products || [])
+
+        } catch (err) {
+            console.error('Fetch error:', err)
+            setError('Error de conexión con el servidor')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleCreateProduct = () => {
+        setShowCreateModal(true)
+    }
+
+    const handleCloseModal = () => {
+        setShowCreateModal(false)
+    }
+
+    const handleProductCreated = () => {
+        // Recargar productos después de crear uno nuevo
+        fetchData()
+    }
+
+    const handleViewProduct = (product: Product) => {
+        setSelectedProduct(product)
+        setShowDetailModal(true)
+    }
+
+    const handleCloseDetailModal = () => {
+        setShowDetailModal(false)
+        setSelectedProduct(null)
+    }
+
+    const handleEditProduct = (product: Product) => {
+        handleCloseDetailModal()
+        // TODO: Abrir modal de edición
+        console.log('Editar producto:', product)
+    }
+
+    const handleDeleteProduct = async (productId: number) => {
+        if (!confirm('¿Estás seguro de que deseas eliminar este producto?')) {
+            return
+        }
+
+        setDeletingId(productId)
+
+        try {
+            const response = await peticionDelete<unknown>(
+                `organizations/${orgId}/products/${productId}`
+            )
+            if (!response.ok) {
+                setError(response.message || 'Error al eliminar producto')
+                return
+            }
+            // Remover producto de la lista
+            setProducts(products.filter(p => p.id !== productId))
+        } catch (err) {
+            console.error('Error en handleDeleteProduct:', err)
+            setError('Error de conexión con el servidor')
+        } finally {
+            setDeletingId(null)
+        }
+    }
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            <Navbar />
+
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Header */}
+                <div className="mb-8">
+                    <button
+                        onClick={() => router.push('/dashboard')}
+                        className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-semibold mb-4"
+                    >
+                        <ArrowLeftIcon className="h-5 w-5" />
+                        Volver a Organizaciones
+                    </button>
+
+                    {organization && (
+                        <div
+                            className="rounded-lg p-6 text-white mb-6"
+                            style={{
+                                background: `linear-gradient(135deg, ${organization.primary_color} 0%, ${organization.secondary_color} 100%)`,
+                            }}
+                        >
+                            <h1 className="text-3xl font-bold">{organization.name}</h1>
+                            <p className="text-white text-opacity-90">{organization.org_type}</p>
+                        </div>
+                    )}
+
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900">Productos</h2>
+                            <p className="text-gray-600 mt-1">Administra los productos de tu organización</p>
+                        </div>
+                        {isVendor && (
+                            <button
+                                onClick={handleCreateProduct}
+                                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200"
+                            >
+                                <PlusIcon className="h-5 w-5" />
+                                Nuevo Producto
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Error Message */}
+                {error && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-red-700">{error}</p>
+                    </div>
+                )}
+
+                {/* Loading State */}
+                {loading && (
+                    <div className="text-center py-12">
+                        <div className="inline-block">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                        </div>
+                        <p className="text-gray-600 mt-4">Cargando productos...</p>
+                    </div>
+                )}
+
+                {/* Empty State */}
+                {!loading && products.length === 0 && (
+                    <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Sin productos</h2>
+                        <p className="text-gray-600 mb-6">Aún no tienes productos. {isVendor ? 'Crea uno para comenzar.' : 'Solo los vendedores pueden crear productos.'}</p>
+                        {isVendor && (
+                            <button
+                                onClick={handleCreateProduct}
+                                className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                            >
+                                <PlusIcon className="h-5 w-5" />
+                                Crear Primer Producto
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {/* Products Table */}
+                {!loading && products.length > 0 && (
+                    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+                        <table className="w-full">
+                            <thead className="bg-gray-100 border-b border-gray-200">
+                                <tr>
+                                    <th className="text-left px-6 py-4 font-semibold text-gray-900">Producto</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-gray-900">SKU</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-gray-900">Precio</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-gray-900">Stock</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-gray-900">Estado</th>
+                                    <th className="text-center px-6 py-4 font-semibold text-gray-900">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {products.map(product => (
+                                    <tr
+                                        key={product.id}
+                                        className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
+                                    >
+                                        <td className="px-6 py-4">
+                                            <div>
+                                                <p className="font-semibold text-gray-900">{product.name}</p>
+                                                {product.description && (
+                                                    <p className="text-sm text-gray-600 line-clamp-1">
+                                                        {product.description}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-gray-700 font-medium">{product.sku}</span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-gray-900 font-semibold">${product.price.toFixed(2)}</span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span
+                                                className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${product.stock > 0
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : 'bg-red-100 text-red-800'
+                                                    }`}
+                                            >
+                                                {product.stock} unidades
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span
+                                                className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${product.is_active
+                                                    ? 'bg-blue-100 text-blue-800'
+                                                    : 'bg-gray-100 text-gray-800'
+                                                    }`}
+                                            >
+                                                {product.is_active ? 'Activo' : 'Inactivo'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <button
+                                                onClick={() => handleViewProduct(product)}
+                                                className="inline-flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-semibold py-2 px-3 rounded-lg transition-colors duration-200 mr-2"
+                                            >
+                                                <EyeIcon className="h-4 w-4" />
+                                                Ver
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteProduct(product.id)}
+                                                disabled={deletingId === product.id}
+                                                className="inline-flex items-center gap-2 bg-red-50 hover:bg-red-100 disabled:bg-red-50 disabled:opacity-50 text-red-600 font-semibold py-2 px-3 rounded-lg transition-colors duration-200"
+                                            >
+                                                <TrashIcon className="h-4 w-4" />
+                                                {deletingId === product.id ? 'Eliminando...' : 'Eliminar'}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </main>
+
+            {/* Modal Crear Producto */}
+            <CreateProductModal
+                orgId={orgId}
+                token={token}
+                isOpen={showCreateModal}
+                onClose={handleCloseModal}
+                onSuccess={handleProductCreated}
+            />
+
+            {/* Modal Detalle Producto */}
+            <ProductDetailModal
+                product={selectedProduct}
+                isOpen={showDetailModal}
+                onClose={handleCloseDetailModal}
+                onEdit={handleEditProduct}
+            />
+        </div>
+    )
+}
