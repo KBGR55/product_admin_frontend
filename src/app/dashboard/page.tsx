@@ -160,10 +160,6 @@ export default function Dashboard() {
                       <span className="font-medium text-gray-900">{org.legal_name}</span>
                     </div>
                     <div className="flex justify-between text-gray-600">
-                      <span>Empleados:</span>
-                      <span className="font-medium text-gray-900">{org.employee_count}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-600">
                       <span>Email:</span>
                       <span className="font-medium text-gray-900 text-xs">{org.email}</span>
                     </div>

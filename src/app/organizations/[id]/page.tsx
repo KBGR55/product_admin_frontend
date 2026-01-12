@@ -41,29 +41,29 @@ export default function OrganizationProducts() {
     }, [orgId])
 
     const checkVendorRole = async () => {
- try {
-    // Obtener empleados de la organización
-    const response = await peticionGet<{
-      employees: OrganizationEmployee[]
-    }>(`organizations/${orgId}/employees`)
+        try {
+            // Obtener empleados de la organización
+            const response = await peticionGet<{
+                employees: OrganizationEmployee[]
+            }>(`organizations/${orgId}/employees`)
 
-    if (!response.ok) {
-      setIsVendor(false)
-      return
-    }
+            if (!response.ok) {
+                setIsVendor(false)
+                return
+            }
 
-    const employees = response.data?.employees || []
-    
-    // Verificar si el usuario actual tiene rol de "Vendedor"
-const hasVendorRole = employees.some(emp => 
-  emp.roles.some(role => role.toLowerCase() === 'vendedor')
-)
+            const employees = response.data?.employees || []
+
+            // Verificar si el usuario actual tiene rol de "Vendedor"
+            const hasVendorRole = employees.some(emp =>
+                emp.roles.some(role => role.toLowerCase() === 'vendedor')
+            )
 
 
-    setIsVendor(hasVendorRole)
-  } catch {
-    setIsVendor(false)
-  }
+            setIsVendor(hasVendorRole)
+        } catch {
+            setIsVendor(false)
+        }
     }
 
     const fetchData = async () => {
@@ -153,10 +153,7 @@ const hasVendorRole = employees.some(emp =>
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <button
-                        onClick={() => router.push('/dashboard')}
-                        className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-semibold mb-4"
-                    >
+                    <button onClick={() => router.push('/dashboard')} className="btn-link mb-4"                    >
                         <ArrowLeftIcon className="h-5 w-5" />
                         Volver a Organizaciones
                     </button>
@@ -181,19 +178,20 @@ const hasVendorRole = employees.some(emp =>
                         {isVendor && (
                             <button
                                 onClick={handleCreateProduct}
-                                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200"
+                                className="btn-primary flex items-center gap-2"
                             >
                                 <PlusIcon className="h-5 w-5" />
-                                Nuevo Producto
+                                Nuevo
                             </button>
+
                         )}
                     </div>
                 </div>
 
                 {/* Error Message */}
                 {error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-red-700">{error}</p>
+                    <div className="auth-error">
+                        <p className="auth-error-text">{error}</p>
                     </div>
                 )}
 
@@ -231,7 +229,6 @@ const hasVendorRole = employees.some(emp =>
                             <thead className="bg-gray-100 border-b border-gray-200">
                                 <tr>
                                     <th className="text-left px-6 py-4 font-semibold text-gray-900">Producto</th>
-                                    <th className="text-left px-6 py-4 font-semibold text-gray-900">SKU</th>
                                     <th className="text-left px-6 py-4 font-semibold text-gray-900">Precio</th>
                                     <th className="text-left px-6 py-4 font-semibold text-gray-900">Stock</th>
                                     <th className="text-left px-6 py-4 font-semibold text-gray-900">Estado</th>
@@ -247,15 +244,7 @@ const hasVendorRole = employees.some(emp =>
                                         <td className="px-6 py-4">
                                             <div>
                                                 <p className="font-semibold text-gray-900">{product.name}</p>
-                                                {product.description && (
-                                                    <p className="text-sm text-gray-600 line-clamp-1">
-                                                        {product.description}
-                                                    </p>
-                                                )}
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="text-gray-700 font-medium">{product.sku}</span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-gray-900 font-semibold">${product.price.toFixed(2)}</span>
@@ -280,23 +269,25 @@ const hasVendorRole = employees.some(emp =>
                                                 {product.is_active ? 'Activo' : 'Inactivo'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <button
-                                                onClick={() => handleViewProduct(product)}
-                                                className="inline-flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-semibold py-2 px-3 rounded-lg transition-colors duration-200 mr-2"
-                                            >
-                                                <EyeIcon className="h-4 w-4" />
-                                                Ver
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteProduct(product.id)}
-                                                disabled={deletingId === product.id}
-                                                className="inline-flex items-center gap-2 bg-red-50 hover:bg-red-100 disabled:bg-red-50 disabled:opacity-50 text-red-600 font-semibold py-2 px-3 rounded-lg transition-colors duration-200"
-                                            >
-                                                <TrashIcon className="h-4 w-4" />
-                                                {deletingId === product.id ? 'Eliminando...' : 'Eliminar'}
-                                            </button>
+                                        <td className="px-6 py-4">
+                                            <div className="flex justify-center gap-2 flex-wrap">
+                                                <button
+                                                    onClick={() => handleViewProduct(product)}
+                                                    className="btn-primary"
+                                                >
+                                                    <EyeIcon className="h-4 w-4" />
+                                                </button>
+
+                                                <button
+                                                    onClick={() => handleDeleteProduct(product.id)}
+                                                    disabled={deletingId === product.id}
+                                                    className="btn-danger"
+                                                >
+                                                    <TrashIcon className="h-4 w-4" />
+                                                </button>
+                                            </div>
                                         </td>
+
                                     </tr>
                                 ))}
                             </tbody>

@@ -3,20 +3,15 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import {
-  ArrowLeftOnRectangleIcon,
-  UserCircleIcon,
-  Bars3Icon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline'
+import {  ArrowLeftOnRectangleIcon,  UserCircleIcon,  Bars3Icon,  XMarkIcon,} from '@heroicons/react/24/outline'
+import { limpiarToken } from '@/ utilities/api'
 
 export default function Navbar() {
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user_id')
+    limpiarToken()
     router.push('/auth/login')
   }
 

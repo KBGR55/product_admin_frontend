@@ -26,6 +26,8 @@ body {
   font-family: Inter, system-ui, sans-serif;
 }
 
+
+
 /* ================= COMPONENTS ================= */
 @layer components {
 
@@ -61,7 +63,11 @@ body {
   .mobile-menu {
     @apply md:hidden border-t border-gray-200 py-4 space-y-3;
   }
-
+  .btn-link {
+    @apply inline-flex items-center gap-2 font-semibold
+           text-indigo-600 hover:text-indigo-700
+           transition-colors;
+  }
   /* ====== LANDING / HOME ====== */
 
   .landing {

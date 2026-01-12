@@ -187,42 +187,6 @@ export const peticionDelete = async <T = unknown>(
     return handleError(error)
   }
 }
-
-/**
- * Upload - Subir archivos
- */
-export const subirArchivo = async <T = unknown>(
-  endpoint: string,
-  formData: FormData,
-  token?: string
-): Promise<ApiResponse<T>> => {
-  try {
-    const headers: Record<string, string> = {}
-    const authToken = token || getToken()
-
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`
-    }
-
-    const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
-      method: 'POST',
-      headers: headers,
-      body: formData,
-    })
-
-    const data = (await response.json()) as Record<string, unknown>
-
-    return {
-      status: response.status,
-      ok: response.ok,
-      data: data as T,
-      message: (data.message as string) || (data.error as string),
-    }
-  } catch (error) {
-    return handleError(error)
-  }
-}
-
 /* ==================== HELPERS ==================== */
 
 /**
