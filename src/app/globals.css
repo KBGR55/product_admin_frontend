@@ -6,8 +6,10 @@
 :root {
   --color-bg: #ffffff;
   --color-text: #171717;
-  --color-primary: #4f46e5; /* indigo-600 */
-  --color-danger: #dc2626;  /* red-600 */
+  --color-primary: #4f46e5;
+  /* indigo-600 */
+  --color-danger: #dc2626;
+  /* red-600 */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,6 +28,7 @@ body {
 
 /* ================= COMPONENTS ================= */
 @layer components {
+
   /* Navbar */
   .navbar {
     @apply bg-white border-b border-gray-200 shadow-sm;
@@ -52,28 +55,25 @@ body {
   }
 
   .btn-danger {
-    @apply flex items-center gap-2 bg-red-50 hover:bg-red-100
-           text-red-600 font-semibold py-2 px-4 rounded-lg transition-colors;
+    @apply flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2 px-4 rounded-lg transition-colors;
   }
 
   .mobile-menu {
     @apply md:hidden border-t border-gray-200 py-4 space-y-3;
   }
+
   /* ====== LANDING / HOME ====== */
 
   .landing {
     @apply min-h-screen flex flex-col;
-    background: linear-gradient(
-      135deg,
-      theme('colors.indigo.900'),
-      #ffffff,
-      theme('colors.indigo.100')
-    );
+    background: linear-gradient(135deg,
+        theme('colors.indigo.900'),
+        #ffffff,
+        theme('colors.indigo.100'));
   }
 
   .landing-header {
-    @apply w-full py-4 px-6 flex justify-between items-center
-           max-w-7xl mx-auto;
+    @apply w-full py-4 px-6 flex justify-between items-center max-w-7xl mx-auto;
   }
 
   .brand {
@@ -81,18 +81,15 @@ body {
   }
 
   .brand-icon {
-    @apply w-9 h-9 bg-indigo-600 rounded-lg flex items-center
-           justify-center text-white font-bold;
+    @apply w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold;
   }
 
   .btn-primary {
-    @apply px-4 py-2 rounded-lg bg-indigo-600 text-white
-           font-medium hover:bg-indigo-700 transition;
+    @apply px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition;
   }
 
   .btn-primary-lg {
-    @apply px-8 py-3 rounded-xl bg-indigo-600 text-white
-           text-lg font-semibold hover:bg-indigo-700 transition;
+    @apply px-8 py-3 rounded-xl bg-indigo-600 text-white text-lg font-semibold hover:bg-indigo-700 transition;
   }
 
   .landing-main {
@@ -100,8 +97,7 @@ body {
   }
 
   .landing-title {
-    @apply text-4xl sm:text-5xl font-extrabold
-           text-gray-900 leading-tight;
+    @apply text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight;
   }
 
   .landing-subtitle {
@@ -113,13 +109,11 @@ body {
   }
 
   .features-grid {
-    @apply max-w-6xl mx-auto grid grid-cols-1
-           sm:grid-cols-3 gap-8;
+    @apply max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8;
   }
 
   .feature-card {
-    @apply rounded-xl border border-gray-200 p-6
-           text-center transition hover:shadow-md;
+    @apply rounded-xl border border-gray-200 p-6 text-center transition hover:shadow-md;
   }
 
   .feature-title {
@@ -133,15 +127,14 @@ body {
   .landing-footer {
     @apply py-6 text-center text-sm text-gray-500;
   }
+
   /* ===== AUTH ===== */
 
   .auth-wrapper {
     @apply min-h-screen flex items-center justify-center p-4;
-    background: linear-gradient(
-      135deg,
-      theme('colors.blue.50'),
-      theme('colors.indigo.100')
-    );
+    background: linear-gradient(135deg,
+        theme('colors.blue.50'),
+        theme('colors.indigo.100'));
   }
 
   .auth-card {
@@ -161,8 +154,7 @@ body {
   }
 
   .auth-error {
-    @apply mb-6 p-4 bg-red-50 border border-red-200
-           rounded-lg flex items-start gap-3;
+    @apply mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3;
   }
 
   .auth-error-text {
@@ -186,9 +178,7 @@ body {
   }
 
   .input {
-    @apply w-full pl-10 pr-4 py-2.5 border border-gray-300
-           rounded-lg focus:outline-none focus:ring-2
-           focus:ring-indigo-500 focus:border-transparent;
+    @apply w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent;
   }
 
   .input-password {
@@ -196,15 +186,11 @@ body {
   }
 
   .input-action {
-    @apply absolute right-3 top-3.5 text-gray-400
-           hover:text-gray-600;
+    @apply absolute right-3 top-3.5 text-gray-400 hover:text-gray-600;
   }
 
   .btn-auth {
-    @apply w-full bg-indigo-600 hover:bg-indigo-700
-           disabled:bg-indigo-400 text-white
-           font-semibold py-2.5 rounded-lg
-           transition-colors;
+    @apply w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-2.5 rounded-lg transition-colors;
   }
 
   .auth-divider {
@@ -220,10 +206,20 @@ body {
   }
 
   .btn-auth-secondary {
-    @apply block w-full text-center bg-gray-100
-           hover:bg-gray-200 text-gray-900
-           font-semibold py-2.5 rounded-lg
-           transition-colors;
+    @apply block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-2.5 rounded-lg transition-colors;
+  }
+
+  /* ===== STEPPER ===== */
+  .stepper {
+    @apply flex justify-center gap-2 mt-4;
+  }
+
+  .step {
+    @apply h-2 w-24 rounded bg-gray-300;
+  }
+
+  .step-active {
+    @apply bg-indigo-600;
   }
 
 }

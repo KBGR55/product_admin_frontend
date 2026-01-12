@@ -1,11 +1,9 @@
 'use client'
-
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { UserIcon, EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, IdentificationIcon, CalendarIcon } from '@heroicons/react/24/outline'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6543'
+import { establecerToken, peticionPost } from '@/ utilities/api'
 
 export default function RegisterForm() {
   const router = useRouter()
@@ -72,84 +70,64 @@ export default function RegisterForm() {
     setLoading(true)
 
     try {
-      // Step 1: Crear usuario
-      console.log('Creando usuario...')
-      const userResponse = await fetch(`${API_URL}/users`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          birth_date: formData.birthDate,
-          identity_number: formData.identityNumber,
-          identity_type: formData.identityType,
-          gender: formData.gender,
-        }),
+      setLoading(true)
+      setError('')
+
+      /* =====================
+       * STEP 1: Crear usuario
+       * ===================== */
+      const userResponse = await peticionPost<{
+        user_id: number
+      }>('users', {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        birth_date: formData.birthDate,
+        identity_number: formData.identityNumber,
+        identity_type: formData.identityType,
+        gender: formData.gender,
       })
 
-      const userData = await userResponse.json()
-      console.log('Response usuario:', userData)
-
-      if (!userResponse.ok) {
-        setError(userData.error || 'Error al crear usuario')
-        setLoading(false)
+      if (!userResponse.ok || !userResponse.data) {
+        setError(userResponse.message || 'Error al crear usuario')
         return
       }
 
-      const userId = userData.user_id
+      const userId = userResponse.data.user_id
 
-      // Step 2: Crear cuenta con email y contraseña
-      console.log('Creando cuenta...')
-      const accountResponse = await fetch(`${API_URL}/accounts/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          email: formData.email,
-          password: formData.password,
-        }),
+      /* ==========================
+       * STEP 2: Crear cuenta
+       * ========================== */
+      const accountResponse = await peticionPost('accounts/register', {
+        user_id: userId,
+        email: formData.email,
+        password: formData.password,
       })
-
-      const accountData = await accountResponse.json()
-      console.log('Response cuenta:', accountData)
 
       if (!accountResponse.ok) {
-        setError(accountData.error || 'Error al crear cuenta')
-        setLoading(false)
+        setError(accountResponse.message || 'Error al crear cuenta')
         return
       }
 
-      // Step 3: Login automático
-      console.log('Iniciando sesión...')
-      const loginResponse = await fetch(`${API_URL}/accounts/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
+      /* ==========================
+       * STEP 3: Login automático
+       * ========================== */
+      const loginResponse = await peticionPost<{
+        token: string
+        user_id: number
+      }>('accounts/login', {
+        email: formData.email,
+        password: formData.password,
       })
 
-      const loginData = await loginResponse.json()
-      console.log('Response login:', loginData)
-
-      if (!loginResponse.ok) {
-        setError(loginData.error || 'Error en el login')
-        setLoading(false)
+      if (!loginResponse.ok || !loginResponse.data) {
+        setError(loginResponse.message || 'Error en el inicio de sesión')
         return
       }
 
-      // Guardar token y redirigir
-      localStorage.setItem('token', loginData.token)
-      localStorage.setItem('user_id', loginData.user_id)
-      
-      // Redirigir al dashboard
+      /* ==========================
+       * STEP 4: Guardar sesión
+       * ========================== */
+      establecerToken(loginResponse.data.token, loginResponse.data.user_id)
       router.push('/dashboard')
     } catch (error) {
       console.error('Error:', error)
@@ -160,26 +138,29 @@ export default function RegisterForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 py-12">
+    <div className="auth-wrapper">
       <div className="w-full max-w-2xl">
         <div className="bg-white rounded-lg shadow-xl p-8">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Crear Cuenta</h1>
-            <p className="text-gray-600 mt-2">
-              {step === 1 ? 'Paso 1: Datos Personales' : 'Paso 2: Cuenta y Contraseña'}
+          <div className="auth-header">
+            <h1 className="auth-title">Crear Cuenta</h1>
+            <p className="auth-subtitle">
+              {step === 1
+                ? 'Paso 1: Datos Personales'
+                : 'Paso 2: Cuenta y Contraseña'}
             </p>
-            <div className="flex justify-center gap-2 mt-4">
-              <div className={`h-2 w-24 rounded ${step === 1 ? 'bg-indigo-600' : 'bg-gray-300'}`}></div>
-              <div className={`h-2 w-24 rounded ${step === 2 ? 'bg-indigo-600' : 'bg-gray-300'}`}></div>
+
+            <div className="stepper">
+              <div className={`step ${step === 1 ? 'step-active' : ''}`} />
+              <div className={`step ${step === 2 ? 'step-active' : ''}`} />
             </div>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-              <div className="text-red-600 mt-0.5">⚠️</div>
-              <p className="text-red-700 text-sm">{error}</p>
+            <div className="auth-error">
+              <span>⚠️</span>
+              <p className="auth-error-text">{error}</p>
             </div>
           )}
 
@@ -190,12 +171,10 @@ export default function RegisterForm() {
               <>
                 {/* Names Row */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                      Nombre
-                    </label>
-                    <div className="relative">
-                      <UserIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                  <div className="form-group">
+                    <label className="form-label">Nombre</label>
+                    <div className="input-wrapper">
+                      <UserIcon className="input-icon" />
                       <input
                         id="firstName"
                         name="firstName"
@@ -204,16 +183,14 @@ export default function RegisterForm() {
                         onChange={handleChange}
                         placeholder="Juan"
                         required
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="input"
                       />
                     </div>
                   </div>
-                  <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                      Apellido
-                    </label>
-                    <div className="relative">
-                      <UserIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                  <div className="form-group">
+                    <label className="form-label">Apellido</label>
+                    <div className="input-wrapper">
+                      <UserIcon className="input-icon" />
                       <input
                         id="lastName"
                         name="lastName"
@@ -222,19 +199,17 @@ export default function RegisterForm() {
                         onChange={handleChange}
                         placeholder="Pérez"
                         required
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="input"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Birth Date */}
-                <div>
-                  <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 mb-2">
-                    Fecha de Nacimiento
-                  </label>
-                  <div className="relative">
-                    <CalendarIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                <div className="form-group">
+                  <label className="form-label">Fecha de Nacimiento</label>
+                  <div className="input-wrapper">
+                    <CalendarIcon className="input-icon" />
                     <input
                       id="birthDate"
                       name="birthDate"
@@ -242,33 +217,29 @@ export default function RegisterForm() {
                       value={formData.birthDate}
                       onChange={handleChange}
                       required
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="input"
                     />
                   </div>
                 </div>
 
                 {/* Identity */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="identityType" className="block text-sm font-medium text-gray-700 mb-2">
-                      Tipo de Identidad
-                    </label>
+                  <div className="form-group">
+                    <label className="form-label">Tipo de Identidad</label>
                     <select
                       id="identityType"
                       name="identityType"
                       value={formData.identityType}
                       onChange={handleChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="input"
                     >
                       <option value="FOREIGN_ID">Cédula Extranjera</option>
                       <option value="PASSPORT">Pasaporte</option>
                       <option value="RUC">RUC</option>
                     </select>
                   </div>
-                  <div>
-                    <label htmlFor="identityNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                      Número de Identidad
-                    </label>
+                  <div className="form-group">
+                    <label className="form-label">Número de Identidad</label>
                     <div className="relative">
                       <IdentificationIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                       <input
@@ -279,23 +250,21 @@ export default function RegisterForm() {
                         onChange={handleChange}
                         placeholder="1234567890"
                         required
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="input"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Gender */}
-                <div>
-                  <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
-                    Género
-                  </label>
+                <div className="form-group">
+                  <label className="form-label">Género</label>
                   <select
                     id="gender"
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="input"
                   >
                     <option value="MALE">Masculino</option>
                     <option value="FEMALE">Femenino</option>
@@ -303,46 +272,37 @@ export default function RegisterForm() {
                   </select>
                 </div>
 
-                {/* Next Button */}
-                <button
-                  type="submit"
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-colors duration-200"
-                >
+                <button type="submit" className="btn-auth">
                   Siguiente →
                 </button>
               </>
             )}
 
             {/* STEP 2: Cuenta y Contraseña */}
+
             {step === 2 && (
               <>
                 {/* Email */}
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Correo Electrónico
-                  </label>
-                  <div className="relative">
-                    <EnvelopeIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                <div className="form-group">
+                  <label className="form-label">Correo Electrónico</label>
+                  <div className="input-wrapper">
+                    <EnvelopeIcon className="input-icon" />
                     <input
-                      id="email"
                       name="email"
                       type="email"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="tu@email.com"
+                      className="input"
                       required
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
 
                 {/* Password */}
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                    Contraseña
-                  </label>
-                  <div className="relative">
-                    <LockClosedIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                <div className="form-group">
+                  <label htmlFor="password" className="form-label">  Contraseña  </label>
+                  <div className="input-wrapper">
+                    <LockClosedIcon className="input-icon" />
                     <input
                       id="password"
                       name="password"
@@ -351,30 +311,22 @@ export default function RegisterForm() {
                       onChange={handleChange}
                       placeholder="••••••••"
                       required
-                      className="w-full pl-10 pr-12 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="input input-password"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPassword ? (
-                        <EyeSlashIcon className="h-5 w-5" />
-                      ) : (
-                        <EyeIcon className="h-5 w-5" />
-                      )}
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="input-action"                    >
+                      {showPassword ? (<EyeSlashIcon className="h-5 w-5" />) : (<EyeIcon className="h-5 w-5" />)}
                     </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Mínimo 8 caracteres</p>
                 </div>
 
                 {/* Confirm Password */}
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="form-group">
+                  <label htmlFor="confirmPassword" className="form-label">
                     Confirmar Contraseña
                   </label>
-                  <div className="relative">
-                    <LockClosedIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                  <div className="input-wrapper">
+                    <LockClosedIcon className="input-icon" />
                     <input
                       id="confirmPassword"
                       name="confirmPassword"
@@ -383,58 +335,37 @@ export default function RegisterForm() {
                       onChange={handleChange}
                       placeholder="••••••••"
                       required
-                      className="w-full pl-10 pr-12 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="input input-password"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
-                    >
-                      {showConfirmPassword ? (
-                        <EyeSlashIcon className="h-5 w-5" />
-                      ) : (
-                        <EyeIcon className="h-5 w-5" />
-                      )}
+                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="input-action"                    >
+                      {showConfirmPassword ? (<EyeSlashIcon className="h-5 w-5" />) : (<EyeIcon className="h-5 w-5" />)}
                     </button>
                   </div>
                 </div>
 
                 {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-2.5 rounded-lg transition-colors duration-200"
-                >
+                <button type="submit" disabled={loading} className="btn-auth">
                   {loading ? 'Registrando...' : 'Registrarse'}
                 </button>
 
                 {/* Back Button */}
-                <button
-                  type="button"
-                  onClick={handlePrevStep}
-                  className="w-full bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-2.5 rounded-lg transition-colors duration-200"
-                >
+                <button type="button" onClick={handlePrevStep} className="btn-auth-secondary"                >
                   ← Atrás
                 </button>
               </>
             )}
           </form>
 
-          {/* Divider */}
-          <div className="my-6 relative">
+          <div className="auth-divider">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
+              <div className="auth-divider-line" />
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">¿Ya tienes cuenta?</span>
+            <div className="relative flex justify-center">
+              <span className="auth-divider-text">¿Ya tienes cuenta?</span>
             </div>
           </div>
 
-          {/* Login Link */}
-          <Link
-            href="/auth/login"
-            className="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-2.5 rounded-lg transition-colors duration-200"
-          >
+          <Link href="/auth/login" className="btn-auth-secondary">
             Inicia Sesión
           </Link>
         </div>
