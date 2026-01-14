@@ -128,7 +128,7 @@ export default function RegisterForm() {
        * STEP 4: Guardar sesión
        * ========================== */
       establecerToken(loginResponse.data.token, loginResponse.data.user_id)
-      router.push('/dashboard')
+      router.push('/organizations')
     } catch (error) {
       console.error('Error:', error)
       setError('Error de conexión con el servidor')

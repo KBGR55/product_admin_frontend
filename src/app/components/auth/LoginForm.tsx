@@ -28,7 +28,7 @@ export default function LoginForm() {
       }
       // Guardar token de forma centralizada
       establecerToken(response.data.token, response.data.user_id)
-      router.push('/dashboard')
+      router.push('/organizations')
     } catch {
       setError('Error inesperado al iniciar sesión')
     } finally {

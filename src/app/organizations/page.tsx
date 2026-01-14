@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/app/components/Navbar'
-
-import { PlusIcon, BuildingOfficeIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, BuildingOfficeIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { Organization } from '@/types/organization'
-import { getToken, peticionGet } from '@/ utilities/api'
+import { getToken, peticionDelete, peticionGet } from '@/ utilities/api'
 
 interface OrganizationsResponse {
   organizations: Organization[]
@@ -17,6 +16,8 @@ export default function Dashboard() {
   const [organizations, setOrganizations] = useState<Organization[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     const token = getToken()
@@ -56,8 +57,56 @@ export default function Dashboard() {
    * Crear nueva organización
    */
   const handleCreateOrg = (): void => {
-    router.push('/organizations/create')
+    router.push('/organizations/form')
   }
+
+  /**
+   * Editar organización
+   */
+  const handleEditOrg = (e: React.MouseEvent, orgId: number): void => {
+    e.stopPropagation()
+    router.push(`/organizations/form/${orgId}`)
+  }
+
+  /**
+   * Eliminar organización
+   */
+  const handleDeleteOrg = (e: React.MouseEvent, orgId: number): void => {
+    e.stopPropagation()
+    setShowDeleteConfirm(orgId)
+  }
+
+  /**
+   * Confirmar eliminación
+   */
+const confirmDelete = async (): Promise<void> => {
+  if (!showDeleteConfirm) return
+
+  setDeleting(true)
+  try {
+    const response = await peticionDelete(
+      `organizations/${showDeleteConfirm}`
+    )
+
+    if (!response.ok) {
+      throw new Error(response.message || 'Error al eliminar la organización')
+    }
+
+    setOrganizations(orgs =>
+      orgs.filter(org => org.id !== showDeleteConfirm)
+    )
+    setShowDeleteConfirm(null)
+  } catch (err) {
+    console.error('Error al eliminar:', err)
+    setError(
+      err instanceof Error
+        ? err.message
+        : 'Error de conexión al eliminar'
+    )
+  } finally {
+    setDeleting(false)
+  }
+}
 
   /**
    * Seleccionar organización
@@ -132,15 +181,33 @@ export default function Dashboard() {
               <div
                 key={org.id}
                 onClick={() => handleSelectOrg(org.id)}
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden cursor-pointer border border-gray-200 hover:border-indigo-400"
+                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden cursor-pointer border border-gray-200 hover:border-indigo-400 group"
               >
-                {/* Color Header */}
+                {/* Color Header con botones */}
                 <div
-                  className="h-24"
+                  className="h-24 relative"
                   style={{
                     background: `linear-gradient(135deg, ${org.primary_color} 0%, ${org.secondary_color} 100%)`,
                   }}
-                />
+                >
+                  {/* Botones flotantes */}
+                  <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={(e) => handleEditOrg(e, org.id)}
+                      className="p-2 bg-white rounded-lg shadow-md hover:bg-indigo-50 transition-colors duration-200"
+                      title="Editar organización"
+                    >
+                      <PencilIcon className="h-5 w-5 text-indigo-600" />
+                    </button>
+                    <button
+                      onClick={(e) => handleDeleteOrg(e, org.id)}
+                      className="p-2 bg-white rounded-lg shadow-md hover:bg-red-50 transition-colors duration-200"
+                      title="Eliminar organización"
+                    >
+                      <TrashIcon className="h-5 w-5 text-red-600" />
+                    </button>
+                  </div>
+                </div>
 
                 {/* Content */}
                 <div className="p-6">
@@ -157,7 +224,7 @@ export default function Dashboard() {
                   <div className="space-y-2 mb-4 text-sm">
                     <div className="flex justify-between text-gray-600">
                       <span>Razón Social:</span>
-                      <span className="font-medium text-gray-900">{org.legal_name}</span>
+                      <span className="font-medium text-gray-900 text-xs">{org.legal_name}</span>
                     </div>
                     <div className="flex justify-between text-gray-600">
                       <span>Email:</span>
@@ -175,6 +242,44 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm !== null && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-red-100">
+                <TrashIcon className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  ¿Eliminar organización?
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Esta acción no se puede deshacer. Se eliminarán todos los empleados, roles y productos asociados.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50"
+              >
+                {deleting ? 'Eliminando...' : 'Eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

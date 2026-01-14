@@ -7,27 +7,27 @@ export interface Organization {
   org_type: string
   description: string
   owner_id: number
-  photo_url: string
   primary_color: string
   secondary_color: string
   tertiary_color: string
   employee_count: number
   address: string
+  extra_data?: Record<string, string>
   created_at: string
+  updated_at: string
 }
 
-export interface CreateOrganizationRequest {
+export interface FormOrganizationRequest {
   name: string
   email: string
   legal_name: string
   org_type: string
   description?: string
-  photo_url?: string
   primary_color?: string
   secondary_color?: string
   tertiary_color?: string
-  employee_count?: number
-  address?: string
+  address?: string,
+  extra_data?: Record<string, string>
 }
 
 export interface OrganizationsResponse {

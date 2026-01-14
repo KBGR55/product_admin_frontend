@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Navbar from '@/app/components/Navbar'
-import CreateProductModal from '@/app/components/CreateProductModal'
 import ProductDetailModal from '@/app/components/ProductDetailModal'
-import { PlusIcon, TrashIcon, ArrowLeftIcon, EyeIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, TrashIcon, EyeIcon } from '@heroicons/react/24/outline'
 import { getToken, peticionDelete, peticionGet } from '@/ utilities/api'
 import { Organization, OrganizationEmployee } from '@/types/organization'
 import { Product, ProductsResponse } from '@/types/product'
+import { PencilIcon } from 'lucide-react'
+import FormProductModal from '@/app/components/FormProductModal'
 
 export default function OrganizationProducts() {
     const router = useRouter()
@@ -23,6 +24,7 @@ export default function OrganizationProducts() {
     const [deletingId, setDeletingId] = useState<number | null>(null)
     const [isVendor, setIsVendor] = useState(false)
     const [showCreateModal, setShowCreateModal] = useState(false)
+    const [showFormEdit, setShowFormEdit] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
     const [showDetailModal, setShowDetailModal] = useState(false)
 
@@ -78,6 +80,7 @@ export default function OrganizationProducts() {
 
             // Obtener productos
             const productsResponse = await peticionGet<ProductsResponse>(`organizations/${orgId}/products`)
+            console.log('Products Response:', productsResponse)
             if (!productsResponse.ok) {
                 setError(productsResponse.error || 'Error al cargar productos')
                 return
@@ -94,6 +97,14 @@ export default function OrganizationProducts() {
 
     const handleCreateProduct = () => {
         setShowCreateModal(true)
+    }
+
+    const handleEditProduct = () => {
+        setShowFormEdit(true);
+    }
+
+    const handleCloseFormEdit = () => {
+        setShowFormEdit(false);
     }
 
     const handleCloseModal = () => {
@@ -113,12 +124,6 @@ export default function OrganizationProducts() {
     const handleCloseDetailModal = () => {
         setShowDetailModal(false)
         setSelectedProduct(null)
-    }
-
-    const handleEditProduct = (product: Product) => {
-        handleCloseDetailModal()
-        // TODO: Abrir modal de edición
-        console.log('Editar producto:', product)
     }
 
     const handleDeleteProduct = async (productId: number) => {
@@ -149,15 +154,9 @@ export default function OrganizationProducts() {
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
-
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <button onClick={() => router.push('/dashboard')} className="btn-link mb-4"                    >
-                        <ArrowLeftIcon className="h-5 w-5" />
-                        Volver a Organizaciones
-                    </button>
-
                     {organization && (
                         <div
                             className="rounded-lg p-6 text-white mb-6"
@@ -175,16 +174,13 @@ export default function OrganizationProducts() {
                             <h2 className="text-2xl font-bold text-gray-900">Productos</h2>
                             <p className="text-gray-600 mt-1">Administra los productos de tu organización</p>
                         </div>
-                        {isVendor && (
-                            <button
-                                onClick={handleCreateProduct}
-                                className="btn-primary flex items-center gap-2"
-                            >
-                                <PlusIcon className="h-5 w-5" />
-                                Nuevo
-                            </button>
-
-                        )}
+                        <button
+                            onClick={handleCreateProduct}
+                            className="btn-primary flex items-center gap-2"
+                        >
+                            <PlusIcon className="h-5 w-5" />
+                            Nuevo
+                        </button>
                     </div>
                 </div>
 
@@ -279,6 +275,17 @@ export default function OrganizationProducts() {
                                                 </button>
 
                                                 <button
+                                                    onClick={() => {
+                                                        setSelectedProduct(product)
+                                                        handleEditProduct()
+                                                    }}
+                                                    className="btn-secondary"
+                                                    title="Editar producto"
+                                                >
+                                                    <PencilIcon className="h-4 w-4" />
+                                                </button>
+
+                                                <button
                                                     onClick={() => handleDeleteProduct(product.id)}
                                                     disabled={deletingId === product.id}
                                                     className="btn-danger"
@@ -297,11 +304,20 @@ export default function OrganizationProducts() {
             </main>
 
             {/* Modal Crear Producto */}
-            <CreateProductModal
+            <FormProductModal
                 orgId={orgId}
                 token={token}
                 isOpen={showCreateModal}
                 onClose={handleCloseModal}
+                onSuccess={handleProductCreated}
+            />
+
+            <FormProductModal
+                orgId={orgId}
+                productId={selectedProduct?.id?.toString() || undefined}
+                token={token}
+                isOpen={showFormEdit}
+                onClose={handleCloseFormEdit}
                 onSuccess={handleProductCreated}
             />
 
