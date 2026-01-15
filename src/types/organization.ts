@@ -52,3 +52,13 @@ export interface OrganizationEmployee {
   roles: string[]
   created_at: string
 }
+
+export interface Role {
+  id: number
+  name: string
+  description?: string
+  created_at: string
+}
+export interface RolesResponse {
+  roles: Role[]
+}

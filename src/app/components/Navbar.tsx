@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import {  ArrowLeftOnRectangleIcon,  UserCircleIcon,  Bars3Icon,  XMarkIcon,} from '@heroicons/react/24/outline'
-import { limpiarToken } from '@/ utilities/api'
+import { ArrowLeftOnRectangleIcon, UserCircleIcon, Bars3Icon, XMarkIcon, } from '@heroicons/react/24/outline'
+import { limpiarToken } from '@/utilities/api'
 
 export default function Navbar() {
   const router = useRouter()
@@ -20,14 +20,14 @@ export default function Navbar() {
       <div className="navbar-container">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/dashboard" className="navbar-logo">
+          <Link href="/organizations" className="navbar-logo">
             <div className="navbar-logo-icon">PA</div>
             <span className="text-xl">Product Admin</span>
           </Link>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/dashboard" className="nav-link">
+            <Link href="/organizations" className="nav-link">
               Organizaciones
             </Link>
 
@@ -66,7 +66,7 @@ export default function Navbar() {
         {mobileMenuOpen && (
           <div className="mobile-menu">
             <Link
-              href="/dashboard"
+              href="/organizations"
               className="block nav-link"
               onClick={() => setMobileMenuOpen(false)}
             >

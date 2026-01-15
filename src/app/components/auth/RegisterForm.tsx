@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { UserIcon, EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, IdentificationIcon, CalendarIcon } from '@heroicons/react/24/outline'
-import { establecerToken, peticionPost } from '@/ utilities/api'
+import { establecerToken, peticionPost } from '@/utilities/api'
 
 export default function RegisterForm() {
   const router = useRouter()

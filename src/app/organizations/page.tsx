@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Navbar from '@/app/components/Navbar'
 import { PlusIcon, BuildingOfficeIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { Organization } from '@/types/organization'
-import { getToken, peticionDelete, peticionGet } from '@/ utilities/api'
+import { getToken, peticionDelete, peticionGet } from '@/utilities/api'
 
 interface OrganizationsResponse {
   organizations: Organization[]
@@ -79,34 +79,34 @@ export default function Dashboard() {
   /**
    * Confirmar eliminación
    */
-const confirmDelete = async (): Promise<void> => {
-  if (!showDeleteConfirm) return
+  const confirmDelete = async (): Promise<void> => {
+    if (!showDeleteConfirm) return
 
-  setDeleting(true)
-  try {
-    const response = await peticionDelete(
-      `organizations/${showDeleteConfirm}`
-    )
+    setDeleting(true)
+    try {
+      const response = await peticionDelete(
+        `organizations/${showDeleteConfirm}`
+      )
 
-    if (!response.ok) {
-      throw new Error(response.message || 'Error al eliminar la organización')
+      if (!response.ok) {
+        throw new Error(response.message || 'Error al eliminar la organización')
+      }
+
+      setOrganizations(orgs =>
+        orgs.filter(org => org.id !== showDeleteConfirm)
+      )
+      setShowDeleteConfirm(null)
+    } catch (err) {
+      console.error('Error al eliminar:', err)
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Error de conexión al eliminar'
+      )
+    } finally {
+      setDeleting(false)
     }
-
-    setOrganizations(orgs =>
-      orgs.filter(org => org.id !== showDeleteConfirm)
-    )
-    setShowDeleteConfirm(null)
-  } catch (err) {
-    console.error('Error al eliminar:', err)
-    setError(
-      err instanceof Error
-        ? err.message
-        : 'Error de conexión al eliminar'
-    )
-  } finally {
-    setDeleting(false)
   }
-}
 
   /**
    * Seleccionar organización

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, ChangeEvent, FormEvent } from 'react'
 import { AlertCircle, CheckCircle, Loader2, Save } from 'lucide-react'
 import Navbar from '@/app/components/Navbar'
 import { FormOrganizationRequest, Organization } from '@/types/organization'
-import { peticionGet, peticionPost, peticionPut } from '@/ utilities/api'
+import { peticionGet, peticionPost, peticionPut } from '@/utilities/api'
 
 const initialFormOrganizationRequest: FormOrganizationRequest = {
   name: '',

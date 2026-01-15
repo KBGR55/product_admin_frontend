@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { XMarkIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { Product, ProductAttribute } from '@/types/product'
-import { peticionGet, peticionPost, peticionPut } from '@/ utilities/api'
+import { peticionGet, peticionPost, peticionPut } from '@/utilities/api'
 
 interface FormData {
   name: string
@@ -54,7 +54,7 @@ export default function FormProductModal({
   const [photoPreview, setPhotoPreview] = useState<string>('')
 
   useEffect(() => {
-    
+
     if (productId) {
       setMode('edit')
       fetchProduct()
