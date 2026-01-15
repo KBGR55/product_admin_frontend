@@ -125,8 +125,6 @@ export default function OrganizationManagement({ orgId }: { orgId?: string | nul
         throw new Error(response.message || 'Error en la operación')
       }
 
-      const result = response.data
-
       setSuccess(
         mode === 'create'
           ? 'Organización creada exitosamente'
@@ -135,7 +133,7 @@ export default function OrganizationManagement({ orgId }: { orgId?: string | nul
 
       if (mode === 'create') {
         setTimeout(() => {
-          window.location.href = `/organizations/${result.id}`
+          window.location.href = `/organizations`
         }, 1500)
       }
     } catch (err) {
