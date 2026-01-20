@@ -1,11 +1,11 @@
-'use client'
-
-import { useParams } from 'next/navigation'
 import OrganizationManagement from '../../../components/OrganizationForm'
 
-export default function FormPage() {
-  const params = useParams()
-  const orgId = params.orgId as string | undefined
+interface PageProps {
+  params: {
+    orgId: string
+  }
+}
 
-  return <OrganizationManagement orgId={orgId} />
+export default function Page({ params }: PageProps) {
+  return <OrganizationManagement orgId={params.orgId} />
 }
