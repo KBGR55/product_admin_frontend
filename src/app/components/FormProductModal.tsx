@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { XMarkIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { Product, ProductAttribute } from '@/types/product'
 import { peticionGet, peticionPost, peticionPut } from '@/utilities/api'
+import Image from 'next/image'
 
 interface FormData {
   name: string
@@ -52,20 +53,6 @@ export default function FormProductModal({
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [photoPreview, setPhotoPreview] = useState<string>('')
-
-  useEffect(() => {
-
-    if (productId) {
-      setMode('edit')
-      fetchProduct()
-    } else {
-      setMode('create')
-      setFormData(initialFormData)
-      setAttributes([{ key: '', value: '' }])
-      setPhotoPreview('')
-    }
-  }, [productId, isOpen])
-
   const fetchProduct = useCallback(async () => {
     if (!productId) return
 
@@ -110,6 +97,18 @@ export default function FormProductModal({
       setLoading(false)
     }
   }, [productId, orgId, token])
+  useEffect(() => {
+    if (productId) {
+      setMode('edit')
+      fetchProduct()
+    } else {
+      setMode('create')
+      setFormData(initialFormData)
+      setAttributes([{ key: '', value: '' }])
+      setPhotoPreview('')
+    }
+  }, [productId, isOpen, fetchProduct])
+
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -415,7 +414,13 @@ export default function FormProductModal({
                   </div>
                   {photoPreview && (
                     <div className="w-32 h-32 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                      <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                      <Image
+                        src={photoPreview}
+                        alt="Preview"
+                        width={128}
+                        height={128}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   )}
                 </div>
