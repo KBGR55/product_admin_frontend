@@ -28,73 +28,73 @@ export default function OrganizationProducts() {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
     const [showDetailModal, setShowDetailModal] = useState(false)
 
-const checkVendorRole = useCallback(async () => {
-    if (!orgId) return
+    const checkVendorRole = useCallback(async () => {
+        if (!orgId) return
 
-    try {
-        const response = await peticionGet<{
-            employees: OrganizationEmployee[]
-        }>(`organizations/${orgId}/employees`)
+        try {
+            const response = await peticionGet<{
+                employees: OrganizationEmployee[]
+            }>(`organizations/${orgId}/employees`)
 
-        if (!response.ok) {
+            if (!response.ok) {
+                setIsVendor(false)
+                return
+            }
+
+            const employees = response.data?.employees || []
+
+            const hasVendorRole = employees.some(emp =>
+                emp.roles.some(role => role.toLowerCase() === 'vendedor')
+            )
+
+            setIsVendor(hasVendorRole)
+        } catch {
             setIsVendor(false)
+        }
+    }, [orgId])
+
+    const fetchData = useCallback(async () => {
+        if (!orgId) return
+
+        try {
+            setLoading(true)
+
+            const orgResponse = await peticionGet<Organization>(`organizations/${orgId}`)
+            if (orgResponse.ok && orgResponse.data) {
+                setOrganization(orgResponse.data)
+            }
+
+            const productsResponse = await peticionGet<ProductsResponse>(
+                `organizations/${orgId}/products`
+            )
+
+            if (!productsResponse.ok) {
+                setError(productsResponse.error || 'Error al cargar productos')
+                return
+            }
+
+            setProducts(productsResponse.data?.products || [])
+        } catch (err) {
+            console.error('Fetch error:', err)
+            setError('Error de conexión con el servidor')
+        } finally {
+            setLoading(false)
+        }
+    }, [orgId])
+
+    useEffect(() => {
+        if (!orgId) return
+
+        const storedToken = getToken()
+        if (!storedToken) {
+            router.push('/auth/login')
             return
         }
 
-        const employees = response.data?.employees || []
-
-        const hasVendorRole = employees.some(emp =>
-            emp.roles.some(role => role.toLowerCase() === 'vendedor')
-        )
-
-        setIsVendor(hasVendorRole)
-    } catch {
-        setIsVendor(false)
-    }
-}, [orgId])
-
-const fetchData = useCallback(async () => {
-    if (!orgId) return
-
-    try {
-        setLoading(true)
-
-        const orgResponse = await peticionGet<Organization>(`organizations/${orgId}`)
-        if (orgResponse.ok && orgResponse.data) {
-            setOrganization(orgResponse.data)
-        }
-
-        const productsResponse = await peticionGet<ProductsResponse>(
-            `organizations/${orgId}/products`
-        )
-
-        if (!productsResponse.ok) {
-            setError(productsResponse.error || 'Error al cargar productos')
-            return
-        }
-
-        setProducts(productsResponse.data?.products || [])
-    } catch (err) {
-        console.error('Fetch error:', err)
-        setError('Error de conexión con el servidor')
-    } finally {
-        setLoading(false)
-    }
-}, [orgId])
-
-useEffect(() => {
-    if (!orgId) return
-
-    const storedToken = getToken()
-    if (!storedToken) {
-        router.push('/auth/login')
-        return
-    }
-
-    setToken(storedToken)
-    checkVendorRole()
-    fetchData()
-}, [orgId, checkVendorRole, fetchData, router])
+        setToken(storedToken)
+        checkVendorRole()
+        fetchData()
+    }, [orgId, checkVendorRole, fetchData, router])
 
     const handleCreateProduct = () => {
         setShowCreateModal(true)

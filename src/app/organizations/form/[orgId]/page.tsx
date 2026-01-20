@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import OrganizationManagement from '../page'
+import OrganizationManagement from '../../../components/OrganizationForm'
 
 export default function FormPage() {
   const params = useParams()
