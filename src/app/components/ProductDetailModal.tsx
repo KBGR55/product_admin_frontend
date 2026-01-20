@@ -2,6 +2,7 @@
 
 import { Product } from '@/types/product'
 import { XMarkIcon } from '@heroicons/react/24/outline'
+import Image from 'next/image'
 
 interface ProductDetailModalProps {
   product: Product | null
@@ -42,9 +43,11 @@ export default function ProductDetailModal({
             <div>
               {product.photo_url ? (
                 <div className="rounded-lg overflow-hidden border border-gray-200 h-64 w-full">
-                  <img
+                  <Image
                     src={product.photo_url}
                     alt={product.name}
+                    width={400}
+                    height={400}
                     className="w-full h-full object-cover"
                   />
                 </div>

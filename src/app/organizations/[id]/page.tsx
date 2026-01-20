@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/app/components/Navbar'
 import {
@@ -9,7 +9,6 @@ import {
   CubeIcon,
   PlusIcon,
   TrashIcon,
-  XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { getToken, peticionGet, peticionPost, peticionDelete } from '@/utilities/api'
 import { Organization, Role, RolesResponse } from '@/types/organization'
@@ -62,6 +61,58 @@ export default function OrganizationDetails({
   const [newEmployeeUserId, setNewEmployeeUserId] = useState('')
   const [newRole, setNewRole] = useState({ name: '', description: '' })
   const [processing, setProcessing] = useState(false)
+  const fetchOrgDetails = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError('')
+
+      const orgResponse = await peticionGet<Organization>(
+        `organizations/${orgId}`
+      )
+
+      if (!orgResponse.ok) {
+        throw new Error(orgResponse.message || 'Error al cargar organización')
+      }
+
+      const orgData = orgResponse.data || null
+      setOrganization(orgData)
+
+      if (!orgData) {
+        throw new Error('No se encontró la organización')
+      }
+
+      try {
+        const empResponse = await peticionGet<OrganizationEmployeeResponse>(
+          `organizations/${orgId}/employees`
+        )
+
+        if (empResponse.ok && empResponse.data) {
+          setEmployees(empResponse.data.employees)
+        }
+      } catch (empErr) {
+        console.error('Error fetching employees:', empErr)
+        setEmployees([])
+      }
+
+      try {
+        const rolesResponse = await peticionGet<RolesResponse>(
+          `organizations/${orgId}/roles`
+        )
+
+        if (rolesResponse.ok && rolesResponse.data?.roles) {
+          setRoles(rolesResponse.data.roles)
+        }
+      } catch (rolesErr) {
+        console.error('Error fetching roles:', rolesErr)
+        setRoles([])
+      }
+    } catch (err) {
+      console.error('Error fetching organization details:', err)
+      setError(err instanceof Error ? err.message : 'Error de conexión')
+    } finally {
+      setLoading(false)
+    }
+  }, [orgId])
 
   useEffect(() => {
     const token = getToken()
@@ -76,68 +127,7 @@ export default function OrganizationDetails({
       setError('ID de organización no encontrado')
       setLoading(false)
     }
-  }, [orgId, router])
-
-  const fetchOrgDetails = async () => {
-    try {
-      setLoading(true)
-      setError('')
-      // Fetch organization
-      const orgResponse = await peticionGet<Organization>(
-        `organizations/${orgId}`
-      )
-
-      if (!orgResponse.ok) {
-        throw new Error(orgResponse.message || 'Error al cargar organización')
-      }
-
-      // El backend puede retornar data.organization o directamente data
-      const orgData = orgResponse.data || null
-      setOrganization(orgData)
-
-      // Solo continuar si tenemos la organización
-      if (!orgData) {
-        throw new Error('No se encontró la organización')
-      }
-
-      // Fetch employees - solo si la organización existe
-      console.log('Fetching employees...')
-      try {
-        const empResponse = await peticionGet<OrganizationEmployeeResponse>(
-          `organizations/${orgId}/employees`
-        )
-        console.log('Employees response:', empResponse)
-
-        if (empResponse.ok && empResponse.data) {
-          setEmployees(empResponse.data.employees)
-        }
-      } catch (empErr) {
-        console.error('Error fetching employees:', empErr)
-        // No lanzar error, solo continuar sin empleados
-        setEmployees([])
-      }
-
-      // Fetch roles
-      try {
-        const rolesResponse = await peticionGet<RolesResponse>(
-          `organizations/${orgId}/roles`
-        )
-
-        if (rolesResponse.ok && rolesResponse.data?.roles) {
-          setRoles(rolesResponse.data.roles)
-        }
-      } catch (rolesErr) {
-        console.error('Error fetching roles:', rolesErr)
-        // No lanzar error, solo continuar sin roles
-        setRoles([])
-      }
-    } catch (err) {
-      console.error('Error fetching organization details:', err)
-      setError(err instanceof Error ? err.message : 'Error de conexión')
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [orgId, router, fetchOrgDetails])
 
   const handleAddEmployee = async () => {
     if (!newEmployeeUserId.trim()) return
@@ -199,25 +189,6 @@ export default function OrganizationDetails({
       setShowAssignRole(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al asignar rol')
-    } finally {
-      setProcessing(false)
-    }
-  }
-
-  const handleRemoveRole = async (employeeId: number, roleId: number) => {
-    setProcessing(true)
-    try {
-      const response = await peticionDelete(
-        `organizations/${orgId}/employees/${employeeId}/roles/${roleId}`
-      )
-
-      if (!response.ok) {
-        throw new Error(response.message || 'Error al remover rol')
-      }
-
-      await fetchOrgDetails()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al remover rol')
     } finally {
       setProcessing(false)
     }
@@ -404,61 +375,61 @@ export default function OrganizationDetails({
               </button>
             </div>
 
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-  {employees.length === 0 ? (
-    <p className="text-center text-gray-500 py-8">
-      No hay empleados registrados
-    </p>
-  ) : (
-    employees.map((employee) => (
-      <div
-        key={employee.id}
-        className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors"
-      >
-        <div className="flex justify-between items-start mb-3">
-          <div>
-            <h3 className="font-semibold text-gray-900">
-              {employee.first_name} {employee.last_name}
-            </h3>
-          </div>
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {employees.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">
+                  No hay empleados registrados
+                </p>
+              ) : (
+                employees.map((employee) => (
+                  <div
+                    key={employee.id}
+                    className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors"
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          {employee.first_name} {employee.last_name}
+                        </h3>
+                      </div>
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowAssignRole(employee.employee_id)}
-              className="p-1 text-indigo-600 hover:bg-indigo-50 rounded"
-              title="Asignar rol"
-            >
-              <PlusIcon className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() =>
-                setShowDeleteConfirm({ type: 'employee', id: employee.employee_id })
-              }
-              className="p-1 text-red-600 hover:bg-red-50 rounded"
-              title="Eliminar empleado"
-            >
-              <TrashIcon className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setShowAssignRole(employee.id)}
+                          className="p-1 text-indigo-600 hover:bg-indigo-50 rounded"
+                          title="Asignar rol"
+                        >
+                          <PlusIcon className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            setShowDeleteConfirm({ type: 'employee', id: employee.id })
+                          }
+                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          title="Eliminar empleado"
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </div>
 
-        {/* Mostrar roles del empleado */}
-        {employee.roles.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {employee.roles.map((role, index) => (
-              <span
-                key={index}
-                className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full"
-              >
-                {role}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-    ))
-  )}
-</div>
+                    {/* Mostrar roles del empleado */}
+                    {employee.roles.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {employee.roles.map((role, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full"
+                          >
+                            {role.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
 
           </div>
 

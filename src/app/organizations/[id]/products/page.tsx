@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Navbar from '@/app/components/Navbar'
 import ProductDetailModal from '@/app/components/ProductDetailModal'
@@ -28,72 +28,73 @@ export default function OrganizationProducts() {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
     const [showDetailModal, setShowDetailModal] = useState(false)
 
-    useEffect(() => {
-        if (!orgId) return
+const checkVendorRole = useCallback(async () => {
+    if (!orgId) return
 
-        const storedToken = getToken()
-        if (!storedToken) {
-            router.push('/auth/login')
+    try {
+        const response = await peticionGet<{
+            employees: OrganizationEmployee[]
+        }>(`organizations/${orgId}/employees`)
+
+        if (!response.ok) {
+            setIsVendor(false)
             return
         }
 
-        setToken(storedToken)
-        checkVendorRole()
-        fetchData()
-    }, [orgId])
+        const employees = response.data?.employees || []
 
-    const checkVendorRole = async () => {
-        try {
-            // Obtener empleados de la organización
-            const response = await peticionGet<{
-                employees: OrganizationEmployee[]
-            }>(`organizations/${orgId}/employees`)
+        const hasVendorRole = employees.some(emp =>
+            emp.roles.some(role => role.toLowerCase() === 'vendedor')
+        )
 
-            if (!response.ok) {
-                setIsVendor(false)
-                return
-            }
+        setIsVendor(hasVendorRole)
+    } catch {
+        setIsVendor(false)
+    }
+}, [orgId])
 
-            const employees = response.data?.employees || []
+const fetchData = useCallback(async () => {
+    if (!orgId) return
 
-            // Verificar si el usuario actual tiene rol de "Vendedor"
-            const hasVendorRole = employees.some(emp =>
-                emp.roles.some(role => role.toLowerCase() === 'vendedor')
-            )
+    try {
+        setLoading(true)
 
-
-            setIsVendor(hasVendorRole)
-        } catch {
-            setIsVendor(false)
+        const orgResponse = await peticionGet<Organization>(`organizations/${orgId}`)
+        if (orgResponse.ok && orgResponse.data) {
+            setOrganization(orgResponse.data)
         }
+
+        const productsResponse = await peticionGet<ProductsResponse>(
+            `organizations/${orgId}/products`
+        )
+
+        if (!productsResponse.ok) {
+            setError(productsResponse.error || 'Error al cargar productos')
+            return
+        }
+
+        setProducts(productsResponse.data?.products || [])
+    } catch (err) {
+        console.error('Fetch error:', err)
+        setError('Error de conexión con el servidor')
+    } finally {
+        setLoading(false)
+    }
+}, [orgId])
+
+useEffect(() => {
+    if (!orgId) return
+
+    const storedToken = getToken()
+    if (!storedToken) {
+        router.push('/auth/login')
+        return
     }
 
-    const fetchData = async () => {
-        try {
-            setLoading(true)
-            // Obtener organización
-            const orgResponse = await peticionGet<Organization>(`organizations/${orgId}`)
-
-            if (orgResponse.ok && orgResponse.data) {
-                setOrganization(orgResponse.data)
-            }
-
-            // Obtener productos
-            const productsResponse = await peticionGet<ProductsResponse>(`organizations/${orgId}/products`)
-            console.log('Products Response:', productsResponse)
-            if (!productsResponse.ok) {
-                setError(productsResponse.error || 'Error al cargar productos')
-                return
-            }
-            setProducts(productsResponse.data?.products || [])
-
-        } catch (err) {
-            console.error('Fetch error:', err)
-            setError('Error de conexión con el servidor')
-        } finally {
-            setLoading(false)
-        }
-    }
+    setToken(storedToken)
+    checkVendorRole()
+    fetchData()
+}, [orgId, checkVendorRole, fetchData, router])
 
     const handleCreateProduct = () => {
         setShowCreateModal(true)
