@@ -1,5 +1,6 @@
 import { Organization } from '@/types/organization'
 import { ArrowLeftIcon, ShoppingCartIcon } from '@heroicons/react/24/outline'
+import Image from 'next/image'
 import { useState } from 'react'
 
 interface Product {
@@ -51,57 +52,57 @@ export default function ProductGrid({
 
   return (
     <section>
-{/* Header */}
-<div className="mb-12">
-  <div
-    className="h-56 rounded-xl mb-8 shadow-lg overflow-hidden relative group"
-    style={{
-      background: `linear-gradient(135deg, ${selectedOrg.primary_color} 0%, ${selectedOrg.secondary_color} 100%)`,
-    }}
-  >
-    {/* Overlay */}
-    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300" />
+      {/* Header */}
+      <div className="mb-12">
+        <div
+          className="h-56 rounded-xl mb-8 shadow-lg overflow-hidden relative group"
+          style={{
+            background: `linear-gradient(135deg, ${selectedOrg.primary_color} 0%, ${selectedOrg.secondary_color} 100%)`,
+          }}
+        >
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300" />
 
-    {/* Back button */}
-<button
-  onClick={onBack}
-  className="absolute top-4 right-4 z-10 flex items-center gap-1.5 
+          {/* Back button */}
+          <button
+            onClick={onBack}
+            className="absolute top-4 right-4 z-10 flex items-center gap-1.5 
              text-white/80 hover:text-white text-sm font-medium
              bg-white/10 hover:bg-white/20 backdrop-blur-md
              px-3 py-1.5 rounded-full transition-all duration-200"
->
+          >
 
-      <ArrowLeftIcon className="h-4 w-4" />
-      Volver
-    </button>
+            <ArrowLeftIcon className="h-4 w-4" />
+            Volver
+          </button>
 
-    {/* Content */}
-    <div className="relative h-full flex flex-col justify-end p-6 text-white">
-      <div className="drop-shadow-lg max-w-3xl">
-        <div className="flex items-center gap-2 mb-2 opacity-90">
-          <ShoppingCartIcon className="h-5 w-5" />
-          <span className="text-sm font-semibold">
-            Catálogo exclusivo
-          </span>
+          {/* Content */}
+          <div className="relative h-full flex flex-col justify-end p-6 text-white">
+            <div className="drop-shadow-lg max-w-3xl">
+              <div className="flex items-center gap-2 mb-2 opacity-90">
+                <ShoppingCartIcon className="h-5 w-5" />
+                <span className="text-sm font-semibold">
+                  Catálogo exclusivo
+                </span>
+              </div>
+
+              <h2 className="text-4xl font-bold mb-2">
+                {selectedOrg.name}
+              </h2>
+
+              {selectedOrg.description && (
+                <p className="text-white/90 text-base leading-relaxed">
+                  {selectedOrg.description}
+                </p>
+              )}
+
+              <p className="text-xs opacity-75 mt-2">
+                {products.length} productos disponibles
+              </p>
+            </div>
+          </div>
         </div>
-
-        <h2 className="text-4xl font-bold mb-2">
-          {selectedOrg.name}
-        </h2>
-
-        {selectedOrg.description && (
-          <p className="text-white/90 text-base leading-relaxed">
-            {selectedOrg.description}
-          </p>
-        )}
-
-        <p className="text-xs opacity-75 mt-2">
-          {products.length} productos disponibles
-        </p>
       </div>
-    </div>
-  </div>
-</div>
 
 
       {/* Products */}
@@ -138,9 +139,11 @@ export default function ProductGrid({
                   <div className="relative h-56 overflow-hidden bg-gray-100 flex-shrink-0">
                     {product.photo_url ? (
                       <>
-                        <img
+                        <Image
                           src={product.photo_url}
                           alt={product.name}
+                          width={300}
+                          height={300}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                         {/* Overlay on hover */}
@@ -192,7 +195,7 @@ export default function ProductGrid({
                     <div className="flex justify-between items-center mb-4">
                       <div className="flex flex-col">
                         <span className="text-xs text-gray-500 font-medium">Precio</span>
-                        <span 
+                        <span
                           className="text-2xl font-bold bg-clip-text text-transparent"
                           style={{
                             backgroundImage: `linear-gradient(to right, ${selectedOrg.primary_color}, ${selectedOrg.secondary_color})`
@@ -220,24 +223,23 @@ export default function ProductGrid({
                     <button
                       onClick={() => handleAddToCart(product)}
                       disabled={product.stock === 0}
-                      className={`w-full py-3 font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-base font-medium mt-auto ${
-                        addedId === product.id
+                      className={`w-full py-3 font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-base font-medium mt-auto ${addedId === product.id
                           ? 'text-white shadow-lg'
                           : product.stock === 0
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-60'
-                          : 'text-white hover:shadow-xl active:scale-95'
-                      }`}
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-60'
+                            : 'text-white hover:shadow-xl active:scale-95'
+                        }`}
                       style={{
-                        backgroundColor: addedId === product.id 
+                        backgroundColor: addedId === product.id
                           ? '#10b981'
                           : product.stock === 0
-                          ? undefined
-                          : selectedOrg.primary_color,
-                        backgroundImage: addedId === product.id 
+                            ? undefined
+                            : selectedOrg.primary_color,
+                        backgroundImage: addedId === product.id
                           ? 'linear-gradient(to right, #10b981, #059669)'
                           : product.stock === 0
-                          ? undefined
-                          : `linear-gradient(to right, ${selectedOrg.primary_color}, ${selectedOrg.secondary_color})`,
+                            ? undefined
+                            : `linear-gradient(to right, ${selectedOrg.primary_color}, ${selectedOrg.secondary_color})`,
                       }}
                     >
                       {addedId === product.id ? (

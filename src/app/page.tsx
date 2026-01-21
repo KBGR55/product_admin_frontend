@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Organization } from '@/types/organization'
+import { Organization, OrganizationsResponse } from '@/types/organization'
 import { getToken, peticionGet } from '@/utilities/api'
 import Header from './components/Header'
 import Hero from './components/Hero'
@@ -10,6 +10,7 @@ import ProductGrid from './components/ProductGrid'
 import CartSidebar from './components/CartSidebar'
 import Features from './components/Features'
 import Footer from './components/Footer'
+import { ProductsResponse } from '@/types/product'
 
 
 interface Product {
@@ -46,7 +47,7 @@ export default function Home() {
       if (!token) return
 
       setLoading(true)
-      const response = await peticionGet<any>('organizations')
+      const response = await peticionGet<OrganizationsResponse>('organizations')
       if (response.ok && response.data?.organizations) {
         setOrganizations(response.data.organizations)
       }
@@ -63,7 +64,7 @@ export default function Home() {
       const token = getToken()
       if (!token) return
 
-      const response = await peticionGet<any>(
+      const response = await peticionGet<ProductsResponse>(
         `organizations/${orgId}/products`
       )
       if (response.ok && response.data?.products) {
