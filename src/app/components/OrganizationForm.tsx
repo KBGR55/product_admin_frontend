@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, ChangeEvent, FormEvent } from 'react'
 import { AlertCircle, CheckCircle, Loader2, Save } from 'lucide-react'
-import Navbar from '@/app/components/Navbar'
 import { FormOrganizationRequest, Organization } from '@/types/organization'
 import { peticionGet, peticionPost, peticionPut } from '@/utilities/api'
+import Header from './Header'
 
 const initialFormOrganizationRequest: FormOrganizationRequest = {
   name: '',
@@ -148,7 +148,7 @@ export default function OrganizationManagement({ orgId }: { orgId?: string | nul
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)' }}>
       {/* Header */}
-      <Navbar />
+      <Header cartCount={0} onCartClick={() => {}} showCart={false} />
       {/* Main Content */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Alerts */}

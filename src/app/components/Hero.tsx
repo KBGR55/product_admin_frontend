@@ -1,25 +1,146 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+
 export default function Hero() {
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+
+  useEffect(() => {
+    setIsLoaded(true)
+  }, [])
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const { clientX, clientY } = e
+      const { innerWidth, innerHeight } = window
+      setMousePosition({
+        x: (clientX / innerWidth) * 20 - 10,
+        y: (clientY / innerHeight) * 20 - 10,
+      })
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [])
+
   return (
-    <section className="relative bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-900 text-white py-16 overflow-hidden">
-      {/* Decorative elements */}
+    <section className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-900 text-white py-10 overflow-hidden">
+      {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl"></div>
+        {/* Floating orbs */}
+        <div
+          className="absolute top-0 right-0 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl animate-pulse"
+          style={{
+            transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`,
+            transition: 'transform 0.3s ease-out',
+          }}
+        />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl animate-pulse animation-delay-2000" />
+
+        {/* Animated grid background */}
+        <div className="absolute inset-0 opacity-5">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `
+                linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.05) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.05) 76%, transparent 77%, transparent)
+              `,
+              backgroundSize: '50px 50px',
+              animation: 'grid 20s linear infinite',
+            }}
+          />
+        </div>
+
+        {/* Floating particles */}
+        <div className="absolute inset-0">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 bg-white/20 rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animation: `float ${3 + i}s ease-in-out infinite`,
+                animationDelay: `${i * 0.5}s`,
+              }}
+            />
+          ))}
+        </div>
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-          Descubre nuestros
-          <span className="block bg-gradient-to-r from-indigo-200 to-blue-200 bg-clip-text text-transparent">
-            productos exclusivos
-          </span>
-        </h1>
+      {/* Content */}
+      <div className="relative max-w-7xl mx-auto px-2 text-center">
 
-        <p className="text-xl text-indigo-100 max-w-2xl mx-auto mb-8 leading-relaxed">
-          Explora múltiples organizaciones y encuentra los mejores productos con precios competitivos. 
-          Compra de forma segura directamente por WhatsApp.
-        </p>
+        {/* Main heading */}
+        <div
+          style={{
+            opacity: isLoaded ? 1 : 0,
+            transform: isLoaded ? 'translateY(0)' : 'translateY(20px)',
+            transition: 'all 0.8s ease-out 0.1s',
+          }}
+        >
+          <h1 className="text-6xl md:text-7xl font-black mb-6 leading-tight">
+            <span className="block">Descubre nuestros</span>
+            <span className="block bg-gradient-to-r from-indigo-200 via-purple-200 to-indigo-200 bg-clip-text text-transparent animate-pulse">
+              productos exclusivos
+            </span>
+          </h1>
+        </div>
+
+        {/* Subtitle */}
+        <div
+          style={{
+            opacity: isLoaded ? 1 : 0,
+            transform: isLoaded ? 'translateY(0)' : 'translateY(20px)',
+            transition: 'all 0.8s ease-out 0.2s',
+          }}
+        >
+          <p className="text-lg md:text-xl text-indigo-100 max-w-3xl mx-auto mb-12 leading-relaxed font-light">
+            Explora múltiples organizaciones y encuentra los mejores productos con precios competitivos.
+         
+          </p>
+        </div>
       </div>
+
+      {/* Styles */}
+      <style jsx>{`
+        @keyframes grid {
+          0% {
+            transform: translateY(-50px);
+          }
+          100% {
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes float {
+          0%,
+          100% {
+            transform: translateY(0px) translateX(0px);
+            opacity: 0;
+          }
+          50% {
+            transform: translateY(-30px) translateX(20px);
+            opacity: 1;
+          }
+        }
+
+        @keyframes bounce-slow {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+      `}</style>
     </section>
   )
 }

@@ -2,16 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { Organization, OrganizationsResponse } from '@/types/organization'
-import { getToken, peticionGet } from '@/utilities/api'
+import { peticionGet } from '@/utilities/api'
 import Header from './components/Header'
 import Hero from './components/Hero'
 import OrganizationGrid from './components/OrganizationGrid'
 import ProductGrid from './components/ProductGrid'
 import CartSidebar from './components/CartSidebar'
-import Features from './components/Features'
-import Footer from './components/Footer'
 import { ProductsResponse } from '@/types/product'
-
 
 interface Product {
   id: number
@@ -43,11 +40,8 @@ export default function Home() {
 
   const fetchOrganizations = async () => {
     try {
-      const token = getToken()
-      if (!token) return
-
       setLoading(true)
-      const response = await peticionGet<OrganizationsResponse>('organizations')
+      const response = await peticionGet<OrganizationsResponse>('public/organizations')
       if (response.ok && response.data?.organizations) {
         setOrganizations(response.data.organizations)
       }
@@ -61,11 +55,9 @@ export default function Home() {
   const fetchProducts = async (orgId: number) => {
     try {
       setLoading(true)
-      const token = getToken()
-      if (!token) return
 
       const response = await peticionGet<ProductsResponse>(
-        `organizations/${orgId}/products`
+        `public/organizations/${orgId}/products`
       )
       if (response.ok && response.data?.products) {
         setProducts(response.data.products)
@@ -134,7 +126,6 @@ export default function Home() {
         onCartClick={() => setShowCart(!showCart)}
         showCart={showCart}
       />
-
       <Hero />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -162,17 +153,15 @@ export default function Home() {
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeFromCart}
         total={getTotalPrice()}
+         organizations={organizations}
       />
 
       {showCart && (
         <div
           onClick={() => setShowCart(false)}
-          className="fixed inset-0 bg-black/50 z-30"
+          className="fixed inset-0 bg-black/80 z-30"
         />
       )}
-
-      <Features />
-      <Footer />
     </div>
   )
 }

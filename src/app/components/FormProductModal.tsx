@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { XMarkIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, CheckCircleIcon, ExclamationTriangleIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import { Product, ProductAttribute } from '@/types/product'
 import { peticionGet, peticionPost, peticionPut } from '@/utilities/api'
 import Image from 'next/image'
@@ -9,7 +9,7 @@ import Image from 'next/image'
 interface FormData {
   name: string
   description: string
-  sku: string
+  sku?: string
   price: string
   cost: string
   stock: string
@@ -53,6 +53,8 @@ export default function FormProductModal({
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [photoPreview, setPhotoPreview] = useState<string>('')
+
+
   const fetchProduct = useCallback(async () => {
     if (!productId) return
 
@@ -66,7 +68,6 @@ export default function FormProductModal({
       }
 
       const data = response.data
-
 
       setFormData({
         name: data.name || '',
@@ -97,6 +98,7 @@ export default function FormProductModal({
       setLoading(false)
     }
   }, [productId, orgId, token])
+
   useEffect(() => {
     if (productId) {
       setMode('edit')
@@ -108,7 +110,6 @@ export default function FormProductModal({
       setPhotoPreview('')
     }
   }, [productId, isOpen, fetchProduct])
-
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -194,16 +195,20 @@ export default function FormProductModal({
       /* ===============================
          Payload
       =============================== */
-      const payload = {
+      const payload: Record<string, unknown> = {
         name: formData.name,
         description: formData.description,
-        sku: formData.sku,
         price: Number(formData.price),
         cost: formData.cost ? Number(formData.cost) : null,
         stock: Number(formData.stock),
         photo_url: formData.photo_url,
         is_active: formData.is_active,
         attributes: attributesObj,
+      }
+
+      // Solo incluir SKU si se proporciona (en modo edit)
+      if (formData.sku) {
+        payload.sku = formData.sku
       }
 
       /* ===============================
@@ -218,14 +223,19 @@ export default function FormProductModal({
         throw new Error(response.message || 'Error en la operación')
       }
 
-      /* ===============================
-         Success
-      =============================== */
-      setSuccess(
-        mode === 'create'
-          ? 'Producto creado exitosamente'
-          : 'Producto actualizado exitosamente'
-      )
+      // Guardar el SKU generado si es nuevo producto
+      if (mode === 'create' && response.data) {
+        const responseData = response.data as Record<string, unknown>
+        if (responseData.sku) {
+          setSuccess(
+            `Producto creado exitosamente (SKU: ${responseData.sku})`
+          )
+        } else {
+          setSuccess('Producto creado exitosamente')
+        }
+      } else {
+        setSuccess('Producto actualizado exitosamente')
+      }
 
       setTimeout(() => {
         setFormData(initialFormData)
@@ -240,7 +250,6 @@ export default function FormProductModal({
       setLoading(false)
     }
   }
-
 
   if (!isOpen) return null
 
@@ -307,7 +316,15 @@ export default function FormProductModal({
                 </div>
                 <div>
                   <label htmlFor="sku" className="block text-sm font-medium text-gray-700 mb-2">
-                    SKU *
+                    <div className="flex items-center gap-2">
+                      SKU
+                      {mode === 'create' && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full">
+                          <SparklesIcon className="h-3 w-3" />
+                          Auto
+                        </span>
+                      )}
+                    </div>
                   </label>
                   <input
                     id="sku"
@@ -315,10 +332,17 @@ export default function FormProductModal({
                     type="text"
                     value={formData.sku}
                     onChange={handleChange}
-                    placeholder="Ej: LM-001"
-                    required
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder={mode === 'create' ? 'Se genera automáticamente' : 'Ej: LM-001'}
+                    disabled={mode === 'create'}
+                    className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                      mode === 'create' ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''
+                    }`}
                   />
+                  {mode === 'create' && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      El SKU se generará automáticamente cuando crees el producto
+                    </p>
+                  )}
                 </div>
               </div>
 

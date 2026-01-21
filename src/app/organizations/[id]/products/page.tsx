@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import Navbar from '@/app/components/Navbar'
 import ProductDetailModal from '@/app/components/ProductDetailModal'
 import { PlusIcon, TrashIcon, EyeIcon } from '@heroicons/react/24/outline'
 import { getToken, peticionDelete, peticionGet } from '@/utilities/api'
@@ -10,6 +9,7 @@ import { Organization, OrganizationEmployee } from '@/types/organization'
 import { Product, ProductsResponse } from '@/types/product'
 import { PencilIcon } from 'lucide-react'
 import FormProductModal from '@/app/components/FormProductModal'
+import Header from '@/app/components/Header'
 
 export default function OrganizationProducts() {
     const router = useRouter()
@@ -154,7 +154,7 @@ export default function OrganizationProducts() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <Navbar />
+            <Header cartCount={0} onCartClick={() => {}} showCart={false} />
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">

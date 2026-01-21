@@ -1,6 +1,6 @@
 import { XMarkIcon, MinusIcon, PlusIcon, TrashIcon, ShoppingBagIcon, } from '@heroicons/react/24/outline'
 import { SendIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface Product {
   id: number
@@ -18,6 +18,13 @@ interface CartItem {
   org_id: number
 }
 
+interface Organization {
+  id: number
+  name: string
+  code_telephone?: string
+  telephone?: string
+}
+
 interface CartSidebarProps {
   isOpen: boolean
   onClose: () => void
@@ -25,6 +32,7 @@ interface CartSidebarProps {
   onUpdateQuantity: (productId: number, orgId: number, quantity: number) => void
   onRemoveItem: (productId: number, orgId: number) => void
   total: number
+  organizations?: Organization[]
 }
 
 export default function CartSidebar({
@@ -33,24 +41,69 @@ export default function CartSidebar({
   cart,
   onUpdateQuantity,
   onRemoveItem,
-  total,
+  organizations = [],
 }: CartSidebarProps) {
   const [removingId, setRemovingId] = useState<string | null>(null)
+  const [isClient, setIsClient] = useState(false)
+
+  // Asegurar que solo se renderiza en cliente
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  // Obtener el número de WhatsApp del carrito (si hay items de una organización)
+  const getWhatsAppNumber = (): string => {
+    if (cart.length === 0) return ''
+
+    const firstOrgId = cart[0].org_id
+    const organization = organizations.find(org => org.id === firstOrgId)
+
+    console.log('Organization found:', organization)
+    console.log('Code telephone:', organization?.code_telephone)
+    console.log('Telephone:', organization?.telephone)
+
+    if (organization?.code_telephone && organization?.telephone) {
+      const cleanPhone = organization.telephone.replace(/\s|-|\.|\(|\)/g, '')
+      const finalNumber = `${organization.code_telephone}${cleanPhone}`
+      console.log('Final WhatsApp number:', finalNumber)
+      return finalNumber
+    }
+
+    console.log('Using fallback number')
+    return '5930980735353'
+  }
 
   const handleSendToWhatsApp = () => {
     if (cart.length === 0) return
 
-    const message = cart
+    const whatsappNumber = getWhatsAppNumber()
+    const firstOrgId = cart[0].org_id
+    const organization = organizations.find(org => org.id === firstOrgId)
+
+    // Filtrar solo items de la organización actual
+    const orgItems = cart.filter(item => item.org_id === firstOrgId)
+
+    if (orgItems.length === 0) {
+      alert('No hay productos de esta organización en el carrito')
+      return
+    }
+
+    // Calcular total solo de esta organización
+    const orgTotal = orgItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+
+    const message = orgItems
       .map(
         item =>
           `${item.product.name} (${item.product.sku}) - Cantidad: ${item.quantity} - Precio: $${(item.product.price * item.quantity).toFixed(2)}`
       )
       .join('\n')
 
-    const whatsappMessage = `Hola, quiero realizar un pedido:\n\n${message}\n\nTotal: $${total.toFixed(2)}`
+    const companyName = organization?.name || 'Product Admin'
+    const finalTotal = (orgTotal * 1.12).toFixed(2)
+    const whatsappMessage = `Hola ${companyName}, quiero realizar un pedido:\n\n${message}\n\nSubtotal: $${orgTotal.toFixed(2)}\nImpuesto (12%): $${(orgTotal * 0.12).toFixed(2)}\nTotal: $${finalTotal}`
     const encodedMessage = encodeURIComponent(whatsappMessage)
 
-    window.open(`https://wa.me/5930980735353?text=${encodedMessage}`, '_blank')
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank')
   }
 
   const handleRemove = (productId: number, orgId: number) => {
@@ -62,7 +115,7 @@ export default function CartSidebar({
     }, 300)
   }
 
-  if (!isOpen) return null
+  if (!isOpen || !isClient) return null
 
   return (
     <div className="fixed right-0 top-0 h-screen w-full sm:w-96 bg-white shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300 overflow-hidden">
@@ -210,27 +263,53 @@ export default function CartSidebar({
       {/* Footer - Purchase Section */}
       {cart.length > 0 && (
         <div className="border-t border-slate-200/50 bg-gradient-to-b from-white via-slate-50 to-slate-100 p-6 space-y-4">
-          {/* Price Breakdown */}
-          <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl p-4 border border-slate-200/50 space-y-3">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-slate-600 font-medium">Subtotal</span>
-              <span className="text-slate-900 font-semibold">
-                ${total.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-slate-600 font-medium">Impuesto</span>
-              <span className="text-slate-900 font-semibold">
-                ${(total * 0.12).toFixed(2)}
-              </span>
-            </div>
-            <div className="border-t border-slate-200/50 pt-3 flex justify-between items-center">
-              <span className="font-bold text-slate-900">Total</span>
-              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                ${(total * 1.12).toFixed(2)}
-              </span>
-            </div>
-          </div>
+          {/* Organization Info */}
+          {(() => {
+            const firstOrgId = cart[0].org_id
+            const organization = organizations.find(org => org.id === firstOrgId)
+            const orgItems = cart.filter(item => item.org_id === firstOrgId)
+            const orgTotal = orgItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+
+            return (
+              <>
+                {/* Organization Name */}
+                {organization && (
+                  <div className="text-sm font-semibold text-indigo-600 mb-3">
+                    📦 {organization.name}
+                  </div>
+                )}
+
+                {/* Price Breakdown */}
+                <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl p-4 border border-slate-200/50 space-y-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600 font-medium">Subtotal</span>
+                    <span className="text-slate-900 font-semibold">
+                      ${orgTotal.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600 font-medium">Impuesto</span>
+                    <span className="text-slate-900 font-semibold">
+                      ${(orgTotal * 0.12).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="border-t border-slate-200/50 pt-3 flex justify-between items-center">
+                    <span className="font-bold text-slate-900">Total</span>
+                    <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                      ${(orgTotal * 1.12).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Info Message */}
+                {cart.length > orgItems.length && (
+                  <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                    ⚠️ Tienes productos de múltiples organizaciones. Se enviará solo de: {organization?.name}
+                  </p>
+                )}
+              </>
+            )
+          })()}
 
           {/* WhatsApp Button */}
           <button
@@ -238,12 +317,14 @@ export default function CartSidebar({
             className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-2xl active:scale-95 text-base relative overflow-hidden group"
           >
             <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <svg className="w-5 h-5 relative z-10" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004a9.87 9.87 0 00-4.93 1.242c-1.527.756-2.938 1.831-4.084 3.165C5.51 8.602 4.863 10.16 4.863 11.788c0 1.908.474 3.74 1.38 5.368l-1.508 5.512 5.657-1.483c1.5.823 3.21 1.257 4.923 1.257 5.449 0 9.886-4.438 9.886-9.886 0-2.657-.975-5.165-2.75-7.151-1.776-1.986-4.144-3.15-6.694-3.15" />
+            </svg>
             <span className="relative z-10 flex items-center gap-2">
               COMPRAR
               <SendIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </span>
           </button>
-
 
           {/* Info message */}
           <p className="text-xs text-slate-600 text-center">

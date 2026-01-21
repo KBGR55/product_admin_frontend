@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Navbar from '@/app/components/Navbar'
 import { PlusIcon, BuildingOfficeIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { Organization } from '@/types/organization'
 import { getToken, peticionDelete, peticionGet } from '@/utilities/api'
+import Header from '../components/Header'
 
 interface OrganizationsResponse {
   organizations: Organization[]
@@ -117,7 +117,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Header cartCount={0} onCartClick={() => {}} showCart={false} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
