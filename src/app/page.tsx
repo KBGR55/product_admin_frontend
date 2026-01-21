@@ -65,6 +65,17 @@ export default function Home() {
   }
 
   const addToCart = (product: Product) => {
+    // Verificar stock antes de agregar
+    const existingItem = cart.find(
+      item => item.product.id === product.id && item.org_id === selectedOrg?.id
+    )
+
+    // Si ya existe, verificar que no exceda el stock
+    if (existingItem && existingItem.quantity >= product.stock) {
+      alert(`No hay más stock disponible. Máximo: ${product.stock}`)
+      return
+    }
+
     setCart(prev => {
       const existing = prev.find(
         item => item.product.id === product.id && item.org_id === selectedOrg?.id
@@ -85,6 +96,14 @@ export default function Home() {
   const updateQuantity = (productId: number, orgId: number, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId, orgId)
+      return
+    }
+
+    // Obtener el producto para verificar stock
+    const product = products.find(p => p.id === productId)
+    
+    if (product && quantity > product.stock) {
+      alert(`No hay suficiente stock. Máximo: ${product.stock}`)
       return
     }
 
@@ -109,6 +128,21 @@ export default function Home() {
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0)
 
+  // Convertir cart a formato { [productId]: quantity } para ProductGrid
+  const getCartItemsForOrg = () => {
+    if (!selectedOrg) return {}
+    
+    const orgCartItems: { [productId: number]: number } = {}
+    
+    cart.forEach(item => {
+      if (item.org_id === selectedOrg.id) {
+        orgCartItems[item.product.id] = item.quantity
+      }
+    })
+    
+    return orgCartItems
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <Header
@@ -132,6 +166,7 @@ export default function Home() {
             loading={loading}
             onBack={() => setSelectedOrg(null)}
             onAddToCart={addToCart}
+            cartItems={getCartItemsForOrg()} // AÑADIDO: Pasar cartItems
           />
         )}
       </main>
@@ -143,7 +178,7 @@ export default function Home() {
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeFromCart}
         total={getTotalPrice()}
-         organizations={organizations}
+        organizations={organizations}
       />
 
       {showCart && (
