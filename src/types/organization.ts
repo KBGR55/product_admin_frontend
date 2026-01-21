@@ -14,6 +14,7 @@ export interface Organization {
   address: string
   extra_data?: Record<string, string>
   code_telephone?: string
+  is_active: boolean
   telephone?: string
   created_at: string
   updated_at: string

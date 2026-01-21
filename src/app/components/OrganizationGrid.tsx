@@ -79,15 +79,10 @@ export default function OrganizationGrid({
                   <p className="text-xs text-gray-500 font-semibold mb-1">Estado</p>
                   <p className="text-sm font-bold text-green-600 flex items-center gap-1">
                     <span className="w-2 h-2 bg-green-600 rounded-full animate-pulse" />
-                    Activo
+                    {org.is_active ? 'Activo' : 'Inactivo'}
                   </p>
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500 font-semibold mb-1">Productos</p>
-                  <p className="text-sm font-bold text-gray-900">
-                    100+
-                  </p>
-                </div>
+
               </div>
 
               {/* CTA Button */}
