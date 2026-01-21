@@ -1,83 +1,177 @@
-import Link from 'next/link'
-import {
-  CubeIcon,
-  BuildingOfficeIcon,
-  ShieldCheckIcon,
-} from '@heroicons/react/24/outline'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Organization } from '@/types/organization'
+import { getToken, peticionGet } from '@/utilities/api'
+import Header from './components/Header'
+import Hero from './components/Hero'
+import OrganizationGrid from './components/OrganizationGrid'
+import ProductGrid from './components/ProductGrid'
+import CartSidebar from './components/CartSidebar'
+import Features from './components/Features'
+import Footer from './components/Footer'
+
+
+interface Product {
+  id: number
+  name: string
+  sku: string
+  price: number
+  stock: number
+  photo_url?: string
+  description?: string
+}
+
+interface CartItem {
+  product: Product
+  quantity: number
+  org_id: number
+}
 
 export default function Home() {
+  const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null)
+  const [products, setProducts] = useState<Product[]>([])
+  const [cart, setCart] = useState<CartItem[]>([])
+  const [loading, setLoading] = useState(false)
+  const [showCart, setShowCart] = useState(false)
+
+  useEffect(() => {
+    fetchOrganizations()
+  }, [])
+
+  const fetchOrganizations = async () => {
+    try {
+      const token = getToken()
+      if (!token) return
+
+      setLoading(true)
+      const response = await peticionGet<any>('organizations')
+      if (response.ok && response.data?.organizations) {
+        setOrganizations(response.data.organizations)
+      }
+    } catch (err) {
+      console.error('Error fetching organizations:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchProducts = async (orgId: number) => {
+    try {
+      setLoading(true)
+      const token = getToken()
+      if (!token) return
+
+      const response = await peticionGet<any>(
+        `organizations/${orgId}/products`
+      )
+      if (response.ok && response.data?.products) {
+        setProducts(response.data.products)
+      }
+    } catch (err) {
+      console.error('Error fetching products:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSelectOrg = (org: Organization) => {
+    setSelectedOrg(org)
+    fetchProducts(org.id)
+  }
+
+  const addToCart = (product: Product) => {
+    setCart(prev => {
+      const existing = prev.find(
+        item => item.product.id === product.id && item.org_id === selectedOrg?.id
+      )
+
+      if (existing) {
+        return prev.map(item =>
+          item.product.id === product.id && item.org_id === selectedOrg?.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      }
+
+      return [...prev, { product, quantity: 1, org_id: selectedOrg!.id }]
+    })
+  }
+
+  const updateQuantity = (productId: number, orgId: number, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(productId, orgId)
+      return
+    }
+
+    setCart(prev =>
+      prev.map(item =>
+        item.product.id === productId && item.org_id === orgId
+          ? { ...item, quantity }
+          : item
+      )
+    )
+  }
+
+  const removeFromCart = (productId: number, orgId: number) => {
+    setCart(prev =>
+      prev.filter(item => !(item.product.id === productId && item.org_id === orgId))
+    )
+  }
+
+  const getTotalPrice = () => {
+    return cart.reduce((total, item) => total + item.product.price * item.quantity, 0)
+  }
+
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+
   return (
-    <div className="landing">
-      {/* Header */}
-      <header className="landing-header">
-        <div className="brand">
-          <div className="brand-icon">PA</div>
-          <span className="text-xl">Product Admin</span>
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <Header
+        cartCount={cartCount}
+        onCartClick={() => setShowCart(!showCart)}
+        showCart={showCart}
+      />
 
-        <Link href="/auth/login" className="btn-primary">
-          Iniciar sesión
-        </Link>
-      </header>
+      <Hero />
 
-      {/* Hero */}
-      <main className="landing-main">
-        <div className="max-w-3xl text-center">
-          <h1 className="landing-title">
-            Gestiona los productos de tu organización
-            <span className="text-indigo-600"> de forma simple</span>
-          </h1>
-
-          <p className="landing-subtitle">
-            Product Admin te permite administrar productos, stock,
-            precios y atributos personalizados por organización,
-            todo desde un solo lugar.
-          </p>
-
-          <div className="mt-10 flex justify-center">
-            <Link href="/auth/login" className="btn-primary-lg">
-              Acceder al sistema
-            </Link>
-          </div>
-        </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {!selectedOrg ? (
+          <OrganizationGrid
+            organizations={organizations}
+            loading={loading}
+            onSelectOrg={handleSelectOrg}
+          />
+        ) : (
+          <ProductGrid
+            selectedOrg={selectedOrg}
+            products={products}
+            loading={loading}
+            onBack={() => setSelectedOrg(null)}
+            onAddToCart={addToCart}
+          />
+        )}
       </main>
 
-      {/* Features */}
-      <section className="features">
-        <div className="features-grid">
-          <div className="feature-card">
-            <CubeIcon className="h-10 w-10 text-indigo-600 mx-auto mb-4" />
-            <h3 className="feature-title">Gestión de Productos</h3>
-            <p className="feature-text">
-              Crea, edita y administra productos con precios,
-              costos y stock.
-            </p>
-          </div>
+      <CartSidebar
+        isOpen={showCart}
+        onClose={() => setShowCart(false)}
+        cart={cart}
+        onUpdateQuantity={updateQuantity}
+        onRemoveItem={removeFromCart}
+        total={getTotalPrice()}
+      />
 
-          <div className="feature-card">
-            <BuildingOfficeIcon className="h-10 w-10 text-indigo-600 mx-auto mb-4" />
-            <h3 className="feature-title">Organizaciones</h3>
-            <p className="feature-text">
-              Cada organización maneja su propio catálogo
-              de productos.
-            </p>
-          </div>
+      {showCart && (
+        <div
+          onClick={() => setShowCart(false)}
+          className="fixed inset-0 bg-black/50 z-30"
+        />
+      )}
 
-          <div className="feature-card">
-            <ShieldCheckIcon className="h-10 w-10 text-indigo-600 mx-auto mb-4" />
-            <h3 className="feature-title">Acceso Seguro</h3>
-            <p className="feature-text">
-              Sistema protegido con autenticación
-              y control de acceso.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="landing-footer">
-        © {new Date().getFullYear()} Product Admin — Gestión inteligente de productos
-      </footer>
+      <Features />
+      <Footer />
     </div>
   )
 }
