@@ -215,7 +215,7 @@ export default function ProductGrid({
                     <button
                       onClick={() => handleAddToCart(product)}
                       disabled={product.stock === 0}
-                      className={`w-full py-3 font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-base font-medium mt-auto ${addedId === product.id
+                      className={`w-full py-3  rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-base font-medium mt-auto ${addedId === product.id
                           ? 'text-white shadow-lg'
                           : product.stock === 0
                             ? 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-60'

@@ -36,59 +36,58 @@ export default function LoginForm() {
     }
   }
 
-
   return (
-    <div className="auth-wrapper">
-      <div className="auth-card">
+    <div className="auth-form-wrapper">
+      <div className="auth-form-card auth-form-card-lg">
         {/* Header */}
-        <div className="auth-header">
-          <h1 className="auth-title">Bienvenido</h1>
-          <p className="auth-subtitle">Inicia sesión en tu cuenta</p>
+        <div className="auth-form-header">
+          <h1 className="auth-form-title">Bienvenido</h1>
+          <p className="auth-form-subtitle">Inicia sesión en tu cuenta</p>
         </div>
 
         {/* Error */}
         {error && (
-          <div className="auth-error">
+          <div className="auth-form-error">
             <span className="text-red-600">⚠️</span>
-            <p className="auth-error-text">{error}</p>
+            <p className="auth-form-error-text">{error}</p>
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="auth-form">
           {/* Email */}
-          <div className="form-group">
-            <label className="form-label">Correo Electrónico</label>
-            <div className="input-wrapper">
-              <EnvelopeIcon className="input-icon" />
+          <div className="auth-form-group">
+            <label className="auth-form-label">Correo Electrónico</label>
+            <div className="auth-form-input-wrapper">
+              <EnvelopeIcon className="auth-form-input-icon" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tu@email.com"
                 required
-                className="input"
+                className="auth-form-input"
               />
             </div>
           </div>
 
           {/* Password */}
-          <div className="form-group">
-            <label className="form-label">Contraseña</label>
-            <div className="input-wrapper">
-              <LockClosedIcon className="input-icon" />
+          <div className="auth-form-group">
+            <label className="auth-form-label">Contraseña</label>
+            <div className="auth-form-input-wrapper">
+              <LockClosedIcon className="auth-form-input-icon" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="input input-password"
+                className="auth-form-input"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="input-action"
+                className="auth-form-input-action"
               >
                 {showPassword ? (
                   <EyeSlashIcon className="h-5 w-5" />
@@ -99,22 +98,24 @@ export default function LoginForm() {
             </div>
           </div>
 
-          <button type="submit" disabled={loading} className="btn-auth">
+          <button type="submit" disabled={loading} className="auth-form-submit">
             {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </button>
         </form>
 
         {/* Divider */}
-        <div className="auth-divider">
+        <div className="auth-form-divider">
           <div className="absolute inset-0 flex items-center">
-            <div className="auth-divider-line"></div>
+            <div className="auth-form-divider-line"></div>
           </div>
           <div className="relative flex justify-center">
-            <span className="auth-divider-text">¿No tienes cuenta?</span>
+            <span className="auth-form-divider-text">¿No tienes cuenta?</span>
           </div>
         </div>
 
-        <Link href="/auth/register" className="btn-auth-secondary">Crear una cuenta </Link>
+        <Link href="/auth/register" className="auth-form-secondary-button">
+          Crear una cuenta
+        </Link>
       </div>
     </div>
   )

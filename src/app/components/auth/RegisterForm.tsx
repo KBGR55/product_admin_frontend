@@ -22,7 +22,7 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [step, setStep] = useState(1) // 1: Datos personales, 2: Cuenta
+  const [step, setStep] = useState(1)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -33,7 +33,6 @@ export default function RegisterForm() {
     e.preventDefault()
     setError('')
 
-    // Validar paso 1
     if (!formData.firstName || !formData.lastName || !formData.birthDate || !formData.identityNumber) {
       setError('Por favor completa todos los campos')
       return
@@ -51,7 +50,6 @@ export default function RegisterForm() {
     e.preventDefault()
     setError('')
 
-    // Validaciones
     if (formData.password !== formData.confirmPassword) {
       setError('Las contraseñas no coinciden')
       return
@@ -70,12 +68,6 @@ export default function RegisterForm() {
     setLoading(true)
 
     try {
-      setLoading(true)
-      setError('')
-
-      /* =====================
-       * STEP 1: Crear usuario
-       * ===================== */
       const userResponse = await peticionPost<{
         user_id: number
       }>('users', {
@@ -94,9 +86,6 @@ export default function RegisterForm() {
 
       const userId = userResponse.data.user_id
 
-      /* ==========================
-       * STEP 2: Crear cuenta
-       * ========================== */
       const accountResponse = await peticionPost('accounts/register', {
         user_id: userId,
         email: formData.email,
@@ -108,9 +97,6 @@ export default function RegisterForm() {
         return
       }
 
-      /* ==========================
-       * STEP 3: Login automático
-       * ========================== */
       const loginResponse = await peticionPost<{
         token: string
         user_id: number
@@ -124,9 +110,6 @@ export default function RegisterForm() {
         return
       }
 
-      /* ==========================
-       * STEP 4: Guardar sesión
-       * ========================== */
       establecerToken(loginResponse.data.token, loginResponse.data.user_id)
       router.push('/organizations')
     } catch (error) {
@@ -138,43 +121,42 @@ export default function RegisterForm() {
   }
 
   return (
-    <div className="auth-wrapper">
-      <div className="w-full max-w-2xl">
-        <div className="bg-white rounded-lg shadow-xl p-8">
-          {/* Header */}
-          <div className="auth-header">
-            <h1 className="auth-title">Crear Cuenta</h1>
-            <p className="auth-subtitle">
-              {step === 1
-                ? 'Paso 1: Datos Personales'
-                : 'Paso 2: Cuenta y Contraseña'}
-            </p>
+    <div className="auth-form-wrapper">
+      <div className="auth-form-card auth-form-card-lg">
+        {/* Header */}
+        <div className="auth-form-header">
+          <h1 className="auth-form-title">Crear Cuenta</h1>
+          <p className="auth-form-subtitle">
+            {step === 1
+              ? 'Paso 1: Datos Personales'
+              : 'Paso 2: Cuenta y Contraseña'}
+          </p>
 
-            <div className="stepper">
-              <div className={`step ${step === 1 ? 'step-active' : ''}`} />
-              <div className={`step ${step === 2 ? 'step-active' : ''}`} />
-            </div>
+          <div className="auth-form-stepper">
+            <div className={`auth-form-step ${step === 1 ? 'auth-form-step-active' : ''}`} />
+            <div className={`auth-form-step ${step === 2 ? 'auth-form-step-active' : ''}`} />
           </div>
+        </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="auth-error">
-              <span>⚠️</span>
-              <p className="auth-error-text">{error}</p>
-            </div>
-          )}
+        {/* Error Message */}
+        {error && (
+          <div className="auth-form-error">
+            <span>⚠️</span>
+            <p className="auth-form-error-text">{error}</p>
+          </div>
+        )}
 
-          {/* Form */}
-          <form onSubmit={step === 1 ? handleNextStep : handleSubmit} className="space-y-5">
+        {/* Form */}
+        <form onSubmit={step === 1 ? handleNextStep : handleSubmit} className="auth-form">
             {/* STEP 1: Datos Personales */}
             {step === 1 && (
               <>
                 {/* Names Row */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="form-group">
-                    <label className="form-label">Nombre</label>
-                    <div className="input-wrapper">
-                      <UserIcon className="input-icon" />
+                  <div className="auth-form-group">
+                    <label className="auth-form-label">Nombre</label>
+                    <div className="auth-form-input-wrapper">
+                      <UserIcon className="auth-form-input-icon" />
                       <input
                         id="firstName"
                         name="firstName"
@@ -183,14 +165,14 @@ export default function RegisterForm() {
                         onChange={handleChange}
                         placeholder="Juan"
                         required
-                        className="input"
+                        className="auth-form-input"
                       />
                     </div>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Apellido</label>
-                    <div className="input-wrapper">
-                      <UserIcon className="input-icon" />
+                  <div className="auth-form-group">
+                    <label className="auth-form-label">Apellido</label>
+                    <div className="auth-form-input-wrapper">
+                      <UserIcon className="auth-form-input-icon" />
                       <input
                         id="lastName"
                         name="lastName"
@@ -199,17 +181,17 @@ export default function RegisterForm() {
                         onChange={handleChange}
                         placeholder="Pérez"
                         required
-                        className="input"
+                        className="auth-form-input"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Birth Date */}
-                <div className="form-group">
-                  <label className="form-label">Fecha de Nacimiento</label>
-                  <div className="input-wrapper">
-                    <CalendarIcon className="input-icon" />
+                <div className="auth-form-group">
+                  <label className="auth-form-label">Fecha de Nacimiento</label>
+                  <div className="auth-form-input-wrapper">
+                    <CalendarIcon className="auth-form-input-icon" />
                     <input
                       id="birthDate"
                       name="birthDate"
@@ -217,31 +199,31 @@ export default function RegisterForm() {
                       value={formData.birthDate}
                       onChange={handleChange}
                       required
-                      className="input"
+                      className="auth-form-input"
                     />
                   </div>
                 </div>
 
                 {/* Identity */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="form-group">
-                    <label className="form-label">Tipo de Identidad</label>
+                  <div className="auth-form-group">
+                    <label className="auth-form-label">Tipo de Identidad</label>
                     <select
                       id="identityType"
                       name="identityType"
                       value={formData.identityType}
                       onChange={handleChange}
-                      className="input"
+                      className="auth-form-input"
                     >
                       <option value="FOREIGN_ID">Cédula Extranjera</option>
                       <option value="PASSPORT">Pasaporte</option>
                       <option value="RUC">RUC</option>
                     </select>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Número de Identidad</label>
-                    <div className="relative">
-                      <IdentificationIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                  <div className="auth-form-group">
+                    <label className="auth-form-label">Número de Identidad</label>
+                    <div className="auth-form-input-wrapper">
+                      <IdentificationIcon className="auth-form-input-icon" />
                       <input
                         id="identityNumber"
                         name="identityNumber"
@@ -250,21 +232,21 @@ export default function RegisterForm() {
                         onChange={handleChange}
                         placeholder="1234567890"
                         required
-                        className="input"
+                        className="auth-form-input"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Gender */}
-                <div className="form-group">
-                  <label className="form-label">Género</label>
+                <div className="auth-form-group">
+                  <label className="auth-form-label">Género</label>
                   <select
                     id="gender"
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    className="input"
+                    className="auth-form-input"
                   >
                     <option value="MALE">Masculino</option>
                     <option value="FEMALE">Femenino</option>
@@ -272,37 +254,36 @@ export default function RegisterForm() {
                   </select>
                 </div>
 
-                <button type="submit" className="btn-auth">
+                <button type="submit" className="auth-form-submit">
                   Siguiente →
                 </button>
               </>
             )}
 
             {/* STEP 2: Cuenta y Contraseña */}
-
             {step === 2 && (
               <>
                 {/* Email */}
-                <div className="form-group">
-                  <label className="form-label">Correo Electrónico</label>
-                  <div className="input-wrapper">
-                    <EnvelopeIcon className="input-icon" />
+                <div className="auth-form-group">
+                  <label className="auth-form-label">Correo Electrónico</label>
+                  <div className="auth-form-input-wrapper">
+                    <EnvelopeIcon className="auth-form-input-icon" />
                     <input
                       name="email"
                       type="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="input"
+                      className="auth-form-input"
                       required
                     />
                   </div>
                 </div>
 
                 {/* Password */}
-                <div className="form-group">
-                  <label htmlFor="password" className="form-label">  Contraseña  </label>
-                  <div className="input-wrapper">
-                    <LockClosedIcon className="input-icon" />
+                <div className="auth-form-group">
+                  <label className="auth-form-label">Contraseña</label>
+                  <div className="auth-form-input-wrapper">
+                    <LockClosedIcon className="auth-form-input-icon" />
                     <input
                       id="password"
                       name="password"
@@ -311,22 +292,28 @@ export default function RegisterForm() {
                       onChange={handleChange}
                       placeholder="••••••••"
                       required
-                      className="input input-password"
+                      className="auth-form-input"
                     />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="input-action"                    >
-                      {showPassword ? (<EyeSlashIcon className="h-5 w-5" />) : (<EyeIcon className="h-5 w-5" />)}
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="auth-form-input-action"
+                    >
+                      {showPassword ? (
+                        <EyeSlashIcon className="h-5 w-5" />
+                      ) : (
+                        <EyeIcon className="h-5 w-5" />
+                      )}
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Mínimo 8 caracteres</p>
+                  <p className="auth-form-input-hint">Mínimo 8 caracteres</p>
                 </div>
 
                 {/* Confirm Password */}
-                <div className="form-group">
-                  <label htmlFor="confirmPassword" className="form-label">
-                    Confirmar Contraseña
-                  </label>
-                  <div className="input-wrapper">
-                    <LockClosedIcon className="input-icon" />
+                <div className="auth-form-group">
+                  <label className="auth-form-label">Confirmar Contraseña</label>
+                  <div className="auth-form-input-wrapper">
+                    <LockClosedIcon className="auth-form-input-icon" />
                     <input
                       id="confirmPassword"
                       name="confirmPassword"
@@ -335,41 +322,48 @@ export default function RegisterForm() {
                       onChange={handleChange}
                       placeholder="••••••••"
                       required
-                      className="input input-password"
+                      className="auth-form-input"
                     />
-                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="input-action"                    >
-                      {showConfirmPassword ? (<EyeSlashIcon className="h-5 w-5" />) : (<EyeIcon className="h-5 w-5" />)}
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="auth-form-input-action"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeSlashIcon className="h-5 w-5" />
+                      ) : (
+                        <EyeIcon className="h-5 w-5" />
+                      )}
                     </button>
                   </div>
                 </div>
 
                 {/* Submit Button */}
-                <button type="submit" disabled={loading} className="btn-auth">
+                <button type="submit" disabled={loading} className="auth-form-submit">
                   {loading ? 'Registrando...' : 'Registrarse'}
                 </button>
 
                 {/* Back Button */}
-                <button type="button" onClick={handlePrevStep} className="btn-auth-secondary"                >
+                <button type="button" onClick={handlePrevStep} className="auth-form-secondary-button">
                   ← Atrás
                 </button>
               </>
             )}
           </form>
 
-          <div className="auth-divider">
+          <div className="auth-form-divider">
             <div className="absolute inset-0 flex items-center">
-              <div className="auth-divider-line" />
+              <div className="auth-form-divider-line" />
             </div>
             <div className="relative flex justify-center">
-              <span className="auth-divider-text">¿Ya tienes cuenta?</span>
+              <span className="auth-form-divider-text">¿Ya tienes cuenta?</span>
             </div>
           </div>
 
-          <Link href="/auth/login" className="btn-auth-secondary">
+          <Link href="/auth/login" className="auth-form-secondary-button">
             Inicia Sesión
           </Link>
         </div>
       </div>
-    </div>
   )
 }
