@@ -1,7 +1,7 @@
 // src/utilities/api.ts
 import { ApiResponse } from "@/types/api"
 
-const API_BASE_URL = 'http://localhost:6543/api'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6543/api'
 
 /**
  * Obtener token del localStorage
