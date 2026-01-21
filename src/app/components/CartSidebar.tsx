@@ -96,9 +96,6 @@ export default function CartSidebar({
 
     // Calcular total solo de esta organización
     const orgSubtotal = orgItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-    const taxRate =  12 // Usar tasa de impuesto de la organización o 12% por defecto
-    const taxAmount = orgSubtotal * (taxRate / 100)
-    const orgTotal = orgSubtotal + taxAmount
 
     const message = orgItems
       .map(
@@ -108,7 +105,7 @@ export default function CartSidebar({
       .join('\n')
 
     const companyName = organization?.name || 'Product Admin'
-    const whatsappMessage = `Hola ${companyName}, quiero realizar un pedido:\n\n${message}\n\nSubtotal: $${orgSubtotal.toFixed(2)}\nImpuesto (${taxRate}%): $${taxAmount.toFixed(2)}\nTotal: $${orgTotal.toFixed(2)}`
+    const whatsappMessage = `Hola ${companyName}, quiero realizar un pedido:\n\n${message}\n\nTotal: $${orgSubtotal.toFixed(2)}`
     const encodedMessage = encodeURIComponent(whatsappMessage)
 
     window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank')
@@ -204,10 +201,7 @@ export default function CartSidebar({
           <div className="p-4 space-y-4">
             {Object.entries(itemsByOrg).map(([orgId, orgItems]) => {
               const org = organizations.find(o => o.id === parseInt(orgId))
-              const orgSubtotal = orgItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-              const taxRate =  12
-              const taxAmount = orgSubtotal * (taxRate / 100)
-              const orgTotal = orgSubtotal + taxAmount
+              const orgSubtotal = orgItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0) 
 
               return (
                 <div key={orgId} className="space-y-3">
@@ -291,16 +285,20 @@ export default function CartSidebar({
 
                       {/* Stock Info */}
                       <div className="mb-3 text-xs">
-                        {availableStock < 10 && availableStock > 0 && (
-                          <p className="text-amber-600 bg-amber-50 p-2 rounded-lg mb-2">
-                            ⚠️ Solo quedan {availableStock} disponible{availableStock !== 1 ? 's' : ''}
-                          </p>
-                        )}
-                        {currentQuantity >= availableStock && (
-                          <p className="text-red-600 bg-red-50 p-2 rounded-lg mb-2">
-                            ✕ Has alcanzado el stock máximo ({availableStock})
-                          </p>
-                        )}
+                      {availableStock < 10 &&
+  availableStock > 0 &&
+  currentQuantity < availableStock && (
+    <p className="text-amber-600 bg-amber-50 p-2 rounded-lg mb-2">
+      ⚠️ Solo quedan {availableStock} disponible{availableStock !== 1 ? 's' : ''}
+    </p>
+)}
+
+{currentQuantity >= availableStock && (
+  <p className="text-red-600 bg-red-50 p-2 rounded-lg mb-2">
+    ✕ Has alcanzado el stock máximo ({availableStock})
+  </p>
+)}
+
                       </div>
 
                       {/* Quantity Controls */}
@@ -335,18 +333,10 @@ export default function CartSidebar({
 
               {/* Resumen por organización */}
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-xl p-4 border border-blue-100">
-                <div className="flex justify-between items-center text-sm mb-2">
-                  <span className="text-slate-600 font-medium">Subtotal:</span>
-                  <span className="text-slate-900 font-semibold">${orgSubtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm mb-2">
-                  <span className="text-slate-600 font-medium">Impuesto ({taxRate}%):</span>
-                  <span className="text-slate-900 font-semibold">${taxAmount.toFixed(2)}</span>
-                </div>
-                <div className="border-t border-blue-200 pt-2 mt-2 flex justify-between items-center">
+                <div className="flex justify-between items-center">
                   <span className="font-bold text-slate-900">Total:</span>
                   <span className="text-lg font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                    ${orgTotal.toFixed(2)}
+                    ${orgSubtotal.toFixed(2)}
                   </span>
                 </div>
               </div>
