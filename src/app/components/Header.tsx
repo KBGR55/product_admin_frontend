@@ -46,11 +46,14 @@ export default function Header({ cartCount, onCartClick, showCart }: HeaderProps
               Inicio
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 group-hover:w-full transition-all duration-300" />
             </Link>
-            <Link href="/organizations" className="text-gray-700 hover:text-indigo-600 font-medium transition-colors group relative">
-              Organizaciones
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 group-hover:w-full transition-all duration-300" />
-            </Link>
-              <Link href="/about-us" className="text-gray-700 hover:text-indigo-600 font-medium transition-colors group relative">
+            {token ? (
+              <Link href="/organizations" className="text-gray-700 hover:text-indigo-600 font-medium transition-colors group relative">
+                Organizaciones
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 group-hover:w-full transition-all duration-300" />
+              </Link>
+            ) : null
+            }
+            <Link href="/about-us" className="text-gray-700 hover:text-indigo-600 font-medium transition-colors group relative">
               Sobre Nosotros
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 group-hover:w-full transition-all duration-300" />
             </Link>
@@ -63,8 +66,8 @@ export default function Header({ cartCount, onCartClick, showCart }: HeaderProps
             <button
               onClick={onCartClick}
               className={`relative p-2.5 rounded-lg transition-all duration-300 group ${showCart
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                  : 'text-gray-700 hover:bg-gray-100'
+                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+                : 'text-gray-700 hover:bg-gray-100'
                 }`}
             >
               <ShoppingCartIcon className="h-6 w-6 group-hover:scale-110 transition-transform" />
@@ -166,22 +169,21 @@ export default function Header({ cartCount, onCartClick, showCart }: HeaderProps
               Inicio
             </Link>
             <Link
-              href="#"
+              href="/about-us"
               className="block px-4 py-2.5 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors font-semibold"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Tiendas
+              Sobre Nosotros
             </Link>
-            <Link
-              href="/organizations"
-              className="block px-4 py-2.5 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors font-semibold"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Organizaciones
-            </Link>
-
             {token ? (
               <>
+                <Link
+                  href="/organizations"
+                  className="block px-4 py-2.5 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors font-semibold"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Organizaciones
+                </Link>
                 <div className="border-t border-gray-200/50 pt-3 space-y-2">
                   <Link
                     href="/profile"

@@ -8,17 +8,7 @@ import Hero from './components/Hero'
 import OrganizationGrid from './components/OrganizationGrid'
 import ProductGrid from './components/ProductGrid'
 import CartSidebar from './components/CartSidebar'
-import { ProductsResponse } from '@/types/product'
-
-interface Product {
-  id: number
-  name: string
-  sku: string
-  price: number
-  stock: number
-  photo_url?: string
-  description?: string
-}
+import { Product, ProductsResponse } from '@/types/product'
 
 interface CartItem {
   product: Product

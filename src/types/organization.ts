@@ -13,6 +13,8 @@ export interface Organization {
   employee_count: number
   address: string
   extra_data?: Record<string, string>
+  code_telephone?: string
+  telephone?: string
   created_at: string
   updated_at: string
 }

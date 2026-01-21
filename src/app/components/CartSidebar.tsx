@@ -1,3 +1,4 @@
+import { Organization } from '@/types/organization'
 import { XMarkIcon, MinusIcon, PlusIcon, TrashIcon, ShoppingBagIcon, } from '@heroicons/react/24/outline'
 import { SendIcon } from 'lucide-react'
 import { useState, useEffect } from 'react'
@@ -18,12 +19,7 @@ interface CartItem {
   org_id: number
 }
 
-interface Organization {
-  id: number
-  name: string
-  code_telephone?: string
-  telephone?: string
-}
+
 
 interface CartSidebarProps {
   isOpen: boolean

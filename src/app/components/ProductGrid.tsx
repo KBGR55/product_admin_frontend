@@ -1,17 +1,9 @@
 import { Organization } from '@/types/organization'
+import { Product } from '@/types/product'
 import { ArrowLeftIcon, ShoppingCartIcon } from '@heroicons/react/24/outline'
 import Image from 'next/image'
 import { useState } from 'react'
 
-interface Product {
-  id: number
-  name: string
-  sku: string
-  price: number
-  stock: number
-  photo_url?: string
-  description?: string
-}
 
 interface ProductGridProps {
   selectedOrg: Organization

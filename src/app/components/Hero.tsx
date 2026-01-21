@@ -25,7 +25,7 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-900 text-white py-10 overflow-hidden">
+    <section className="hero-section">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Floating orbs */}
@@ -71,7 +71,7 @@ export default function Hero() {
       </div>
 
       {/* Content */}
-      <div className="relative max-w-7xl mx-auto px-2 text-center">
+      <div className="hero-content">
 
         {/* Main heading */}
         <div
@@ -81,9 +81,9 @@ export default function Hero() {
             transition: 'all 0.8s ease-out 0.1s',
           }}
         >
-          <h1 className="text-6xl md:text-7xl font-black mb-6 leading-tight">
+          <h1 className="hero-heading">
             <span className="block">Descubre nuestros</span>
-            <span className="block bg-gradient-to-r from-indigo-200 via-purple-200 to-indigo-200 bg-clip-text text-transparent animate-pulse">
+            <span className="hero-heading-highlight animate-pulse">
               productos exclusivos
             </span>
           </h1>
@@ -97,50 +97,11 @@ export default function Hero() {
             transition: 'all 0.8s ease-out 0.2s',
           }}
         >
-          <p className="text-lg md:text-xl text-indigo-100 max-w-3xl mx-auto mb-12 leading-relaxed font-light">
+          <p className="hero-subtitle">
             Explora múltiples organizaciones y encuentra los mejores productos con precios competitivos.
-         
           </p>
         </div>
       </div>
-
-      {/* Styles */}
-      <style jsx>{`
-        @keyframes grid {
-          0% {
-            transform: translateY(-50px);
-          }
-          100% {
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0px) translateX(0px);
-            opacity: 0;
-          }
-          50% {
-            transform: translateY(-30px) translateX(20px);
-            opacity: 1;
-          }
-        }
-
-        @keyframes bounce-slow {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-      `}</style>
     </section>
   )
 }
