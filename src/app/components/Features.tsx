@@ -111,7 +111,7 @@ export default function Features() {
         </div>
 
         {/* Benefits Section */}
-        <div className="benefits-section">
+        <div className="benefits-section mt-12">
           {/* Decorative elements */}
           <div className="benefits-glow-1" />
           <div className="benefits-glow-2" />
