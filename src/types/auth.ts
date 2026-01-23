@@ -38,6 +38,3 @@ export interface RegisterRequest {
   email: string
   password: string
 }
-
-export type IdentityType = 'RUC' | 'PASSPORT' | 'FOREIGN_ID'
-export type Gender = 'MALE' | 'FEMALE' | 'OTHER'

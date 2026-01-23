@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Organization, OrganizationsResponse } from '@/types/organization'
+import { Country } from '@/types/country'
 import { peticionGet } from '@/utilities/api'
 import Header from './components/Header'
 import Hero from './components/Hero'
@@ -18,6 +19,7 @@ interface CartItem {
 
 export default function Home() {
   const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [countries, setCountries] = useState<Country[]>([])
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null)
   const [products, setProducts] = useState<Product[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
@@ -26,6 +28,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchOrganizations()
+    fetchCountries()
   }, [])
 
   const fetchOrganizations = async () => {
@@ -39,6 +42,17 @@ export default function Home() {
       console.error('Error fetching organizations:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchCountries = async () => {
+    try {
+      const response = await peticionGet<Country[]>('countries')
+      if (response.ok && Array.isArray(response.data)) {
+        setCountries(response.data)
+      }
+    } catch (err) {
+      console.error('Error fetching countries:', err)
     }
   }
 
@@ -166,7 +180,7 @@ export default function Home() {
             loading={loading}
             onBack={() => setSelectedOrg(null)}
             onAddToCart={addToCart}
-            cartItems={getCartItemsForOrg()} // AÑADIDO: Pasar cartItems
+            cartItems={getCartItemsForOrg()}
           />
         )}
       </main>
@@ -179,6 +193,7 @@ export default function Home() {
         onRemoveItem={removeFromCart}
         total={getTotalPrice()}
         organizations={organizations}
+        countries={countries}
       />
 
       {showCart && (

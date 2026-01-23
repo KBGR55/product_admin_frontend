@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, ChangeEvent, FormEvent } from 'react'
 import { AlertCircle, CheckCircle, Loader2, Save } from 'lucide-react'
 import { FormOrganizationRequest, Organization } from '@/types/organization'
+import { Country } from '@/types/country'
 import { peticionGet, peticionPost, peticionPut } from '@/utilities/api'
 import Header from './Header'
 
@@ -11,7 +12,9 @@ const initialFormOrganizationRequest: FormOrganizationRequest = {
   email: '',
   legal_name: '',
   org_type: '',
+  country_id: 0,
   description: '',
+  telephone: '',
   address: '',
   primary_color: '#4f46e5',
   secondary_color: '#bbe0ef',
@@ -22,11 +25,30 @@ const initialFormOrganizationRequest: FormOrganizationRequest = {
 export default function OrganizationManagement({ orgId }: { orgId?: string | null }) {
   const mode: 'create' | 'edit' = orgId ? 'edit' : 'create'
   const [formData, setFormOrganizationRequest] = useState<FormOrganizationRequest>(initialFormOrganizationRequest)
+  const [countries, setCountries] = useState<Country[]>([])
   const [attributes, setAttributes] = useState<{ key: string; value: string }[]>([{ key: '', value: '' }])
   const [loading, setLoading] = useState(false)
+  const [loadingCountries, setLoadingCountries] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const orgTypes = ['EMPRESA', 'ONG', 'GOBIERNO', 'EDUCACION', 'SALUD', 'OTRO']
+
+  // Cargar países
+  useEffect(() => {
+    const loadCountries = async () => {
+      try {
+        const response = await peticionGet<Country[]>('countries')
+        if (response.ok && Array.isArray(response.data)) {
+          setCountries(response.data)
+        }
+      } catch (err) {
+        console.error('Error cargando países:', err)
+      } finally {
+        setLoadingCountries(false)
+      }
+    }
+    loadCountries()
+  }, [])
 
   const fetchOrganization = useCallback(async () => {
     if (!orgId) return
@@ -36,7 +58,7 @@ export default function OrganizationManagement({ orgId }: { orgId?: string | nul
       const response = await peticionGet<Organization>(`organizations/${orgId}`)
 
       if (!response.ok || !response.data) {
-        throw new Error(response.error || 'Error al obtener la organización')
+        throw new Error(response.message || 'Error al obtener la organización')
       }
 
       const data: Organization = response.data
@@ -45,7 +67,9 @@ export default function OrganizationManagement({ orgId }: { orgId?: string | nul
         email: data.email || '',
         legal_name: data.legal_name || '',
         org_type: data.org_type || '',
+        country_id: data.country_id || 0,
         description: data.description || '',
+        telephone: data.telephone || '',
         address: data.address || '',
         primary_color: data.primary_color || '#4f46e5',
         secondary_color: data.secondary_color || '#bbe0ef',
@@ -78,7 +102,8 @@ export default function OrganizationManagement({ orgId }: { orgId?: string | nul
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setFormOrganizationRequest(prev => ({ ...prev, [name]: value }))
+    const numValue = name === 'country_id' ? Number(value) : value
+    setFormOrganizationRequest(prev => ({ ...prev, [name]: numValue }))
   }
 
   const handleAttributeChange = (index: number, field: 'key' | 'value', val: string) => {
@@ -102,13 +127,18 @@ export default function OrganizationManagement({ orgId }: { orgId?: string | nul
     setLoading(true)
 
     try {
+      // Validar país
+      if (!formData.country_id || formData.country_id === 0) {
+        throw new Error('Debe seleccionar un país')
+      }
+
       // construir extra_data
       const extra_data_obj = attributes.reduce((acc, attr) => {
         if (attr.key.trim()) {
           acc[attr.key] = attr.value
         }
         return acc
-      }, {} as Record<string, string>)
+      }, {} as Record<string, unknown>)
 
       const payload = {
         ...formData,
@@ -145,6 +175,11 @@ export default function OrganizationManagement({ orgId }: { orgId?: string | nul
     }
   }
 
+  const getCountryPhoneCode = (countryId: number) => {
+    const country = countries.find(c => c.id === countryId)
+    return country?.phone_code || ''
+  }
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)' }}>
       {/* Header */}
@@ -166,7 +201,7 @@ export default function OrganizationManagement({ orgId }: { orgId?: string | nul
           </div>
         )}
 
-        {loading && mode === 'edit' && !success ? (
+        {(loading && mode === 'edit' && !success) || loadingCountries ? (
           <div className="flex justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--color-primary)' }} />
           </div>
@@ -247,6 +282,55 @@ export default function OrganizationManagement({ orgId }: { orgId?: string | nul
                         <option key={type} value={type}>{type}</option>
                       ))}
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>
+                      País *
+                    </label>
+                    <select
+                      name="country_id"
+                      value={formData.country_id}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-2 rounded-lg border outline-none transition focus:ring-2"
+                      style={{ borderColor: '#e5e7eb' }}
+                    >
+                      <option value="0">Selecciona un país</option>
+                      {countries.map(country => (
+                        <option key={country.id} value={country.id}>
+                          {country.name} ({country.code})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>
+                      Teléfono
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        disabled
+                        value={getCountryPhoneCode(formData.country_id)}
+                        placeholder="+XX"
+                        className="w-20 px-3 py-2 rounded-lg border outline-none bg-gray-100 cursor-not-allowed"
+                        style={{ borderColor: '#e5e7eb' }}
+                      />
+                      <input
+                        type="tel"
+                        name="telephone"
+                        value={formData.telephone || ''}
+                        onChange={handleChange}
+                        placeholder="Ej: 987654321"
+                        className="flex-1 px-4 py-2 rounded-lg border outline-none transition focus:ring-2"
+                        style={{ borderColor: '#e5e7eb' }}
+                      />
+                    </div>
+                    <p className="text-xs mt-1" style={{ color: '#6b7280' }}>
+                      Código de país: {getCountryPhoneCode(formData.country_id) || 'Selecciona un país'}
+                    </p>
                   </div>
                 </div>
 

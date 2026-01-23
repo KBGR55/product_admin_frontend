@@ -1,9 +1,12 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { UserIcon, EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, IdentificationIcon, CalendarIcon } from '@heroicons/react/24/outline'
-import { establecerToken, peticionPost } from '@/utilities/api'
+import { establecerToken, peticionPost, peticionGet } from '@/utilities/api'
+import { IdentityType } from '@/types/identity_type'
+import { Gender } from '@/types/gender'
+
 
 export default function RegisterForm() {
   const router = useRouter()
@@ -12,17 +15,71 @@ export default function RegisterForm() {
     lastName: '',
     birthDate: '',
     identityNumber: '',
-    identityType: 'FOREIGN_ID',
-    gender: 'MALE',
+    identityType: '',
+    gender: '',
     email: '',
     password: '',
     confirmPassword: '',
   })
+  const [identityTypes, setIdentityTypes] = useState<IdentityType[]>([])
+  const [genders, setGenders] = useState<Gender[]>([])
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loadingData, setLoadingData] = useState(true)
   const [step, setStep] = useState(1)
+
+  // Cargar identity types y genders al montar el componente
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [identityResponse, genderResponse] = await Promise.all([
+          peticionGet<IdentityType[]>('identity-types'),
+          peticionGet<Gender[]>('genders'),
+        ])
+
+        console.log('Identity Types Response:', identityResponse)
+        console.log('Gender Response:', genderResponse)
+
+        // El backend devuelve un array directamente
+        if (identityResponse.ok && Array.isArray(identityResponse.data)) {
+          const identityData = identityResponse.data as IdentityType[]
+          setIdentityTypes(identityData)
+          if (identityData.length > 0) {
+            setFormData(prev => ({ 
+              ...prev, 
+              identityType: identityData[0].code 
+            }))
+          }
+        } else {
+          console.error('Identity types response not valid:', identityResponse)
+          setIdentityTypes([])
+        }
+
+        if (genderResponse.ok && Array.isArray(genderResponse.data)) {
+          const genderData = genderResponse.data as Gender[]
+          setGenders(genderData)
+          if (genderData.length > 0) {
+            setFormData(prev => ({ 
+              ...prev, 
+              gender: genderData[0].code 
+            }))
+          }
+        } else {
+          console.error('Gender response not valid:', genderResponse)
+          setGenders([])
+        }
+      } catch (error) {
+        console.error('Error cargando datos:', error)
+        setError('Error al cargar tipos de identidad y géneros')
+      } finally {
+        setLoadingData(false)
+      }
+    }
+
+    loadData()
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -35,6 +92,11 @@ export default function RegisterForm() {
 
     if (!formData.firstName || !formData.lastName || !formData.birthDate || !formData.identityNumber) {
       setError('Por favor completa todos los campos')
+      return
+    }
+
+    if (!formData.identityType || !formData.gender) {
+      setError('Por favor selecciona un tipo de identidad y género')
       return
     }
 
@@ -118,6 +180,18 @@ export default function RegisterForm() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (loadingData) {
+    return (
+      <div className="auth-form-wrapper">
+        <div className="auth-form-card auth-form-card-lg">
+          <div className="flex justify-center items-center h-64">
+            <p className="text-gray-600">Cargando formulario...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -214,10 +288,14 @@ export default function RegisterForm() {
                       value={formData.identityType}
                       onChange={handleChange}
                       className="auth-form-input"
+                      required
                     >
-                      <option value="FOREIGN_ID">Cédula Extranjera</option>
-                      <option value="PASSPORT">Pasaporte</option>
-                      <option value="RUC">RUC</option>
+                      <option value="">Seleccionar tipo...</option>
+                      {identityTypes.map(type => (
+                        <option key={type.id} value={type.code}>
+                          {type.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="auth-form-group">
@@ -247,10 +325,14 @@ export default function RegisterForm() {
                     value={formData.gender}
                     onChange={handleChange}
                     className="auth-form-input"
+                    required
                   >
-                    <option value="MALE">Masculino</option>
-                    <option value="FEMALE">Femenino</option>
-                    <option value="OTHER">Otro</option>
+                    <option value="">Seleccionar género...</option>
+                    {genders.map(gender => (
+                      <option key={gender.id} value={gender.code}>
+                        {gender.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -365,5 +447,6 @@ export default function RegisterForm() {
           </Link>
         </div>
       </div>
-  )
+    )
+
 }

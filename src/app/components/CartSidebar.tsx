@@ -1,4 +1,5 @@
 import { Organization } from '@/types/organization'
+import { Country } from '@/types/country'
 import { XMarkIcon, MinusIcon, PlusIcon, TrashIcon, ShoppingBagIcon, } from '@heroicons/react/24/outline'
 import { SendIcon } from 'lucide-react'
 import { useState, useEffect } from 'react'
@@ -25,8 +26,9 @@ interface CartSidebarProps {
   cart: CartItem[]
   onUpdateQuantity: (productId: number, orgId: number, quantity: number) => void
   onRemoveItem: (productId: number, orgId: number) => void
-  total: number // AÑADIDO: Este prop se recibe pero no se usa
+  total: number
   organizations?: Organization[]
+  countries?: Country[]
 }
 
 export default function CartSidebar({
@@ -35,8 +37,9 @@ export default function CartSidebar({
   cart,
   onUpdateQuantity,
   onRemoveItem,
-  total, // AÑADIDO: Usar el total proporcionado
+  total,
   organizations = [],
+  countries = [],
 }: CartSidebarProps) {
   const [removingId, setRemovingId] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
@@ -46,26 +49,33 @@ export default function CartSidebar({
     setIsClient(true)
   }, [])
 
-  // Obtener el número de WhatsApp del carrito (si hay items de una organización)
+  // Obtener el número de WhatsApp del carrito
   const getWhatsAppNumber = (): string => {
     if (cart.length === 0) return ''
 
     const firstOrgId = cart[0].org_id
     const organization = organizations.find(org => org.id === firstOrgId)
 
-    console.log('Organization found:', organization)
-    console.log('Code telephone:', organization?.code_telephone)
-    console.log('Telephone:', organization?.telephone)
+    if (!organization) return '5930980735353'
 
-    if (organization?.code_telephone && organization?.telephone) {
+    // Obtener el country con su phone_code
+    const country = countries.find(c => c.id === organization.country_id)
+    const phoneCode = country?.phone_code || ''
+
+    console.log('Organization found:', organization)
+    console.log('Country:', country)
+    console.log('Phone code:', phoneCode)
+    console.log('Telephone:', organization.telephone)
+
+    if (phoneCode && organization.telephone) {
       const cleanPhone = organization.telephone.replace(/\s|-|\.|\(|\)/g, '')
-      const finalNumber = `${organization.code_telephone}${cleanPhone}`
+      const finalNumber = `${phoneCode}${cleanPhone}`
       console.log('Final WhatsApp number:', finalNumber)
       return finalNumber
     }
 
     console.log('Using fallback number')
-    return '5930980735353' // Número de respaldo si no hay configuración
+    return '5930980735353'
   }
 
   const handleSendToWhatsApp = () => {
@@ -121,7 +131,6 @@ export default function CartSidebar({
   }
 
   const handleIncreaseQuantity = (item: CartItem) => {
-    // Verificar que no exceda el stock disponible
     if (item.quantity >= item.product.stock) {
       alert(`No hay más stock disponible. Máximo: ${item.product.stock}`)
       return
@@ -133,7 +142,6 @@ export default function CartSidebar({
     if (item.quantity > 1) {
       onUpdateQuantity(item.product.id, item.org_id, item.quantity - 1)
     } else {
-      // Si la cantidad es 1, preguntar si quiere eliminar
       if (window.confirm('¿Quieres eliminar este producto del carrito?')) {
         handleRemove(item.product.id, item.org_id)
       }
@@ -152,6 +160,12 @@ export default function CartSidebar({
   })
 
   const hasMultipleOrgs = Object.keys(itemsByOrg).length > 1
+
+  // Función para obtener el country_code de una organización
+  const getCountryCode = (org: Organization): string => {
+    const country = countries.find(c => c.id === org.country_id)
+    return country?.phone_code || ''
+  }
 
   return (
     <div className="fixed right-0 top-0 h-screen w-full sm:w-96 bg-white shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300 overflow-hidden">
@@ -202,6 +216,7 @@ export default function CartSidebar({
             {Object.entries(itemsByOrg).map(([orgId, orgItems]) => {
               const org = organizations.find(o => o.id === parseInt(orgId))
               const orgSubtotal = orgItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+              const countryCode = org ? getCountryCode(org) : ''
 
               return (
                 <div key={orgId} className="space-y-3">
@@ -220,7 +235,7 @@ export default function CartSidebar({
                     </div>
                     {org?.telephone && (
                       <p className="text-xs text-gray-600 mt-1">
-                        📞 Contacto: {org.code_telephone || ''} {org.telephone}
+                        📞 Contacto: {countryCode} {org.telephone}
                       </p>
                     )}
                   </div>
@@ -297,7 +312,6 @@ export default function CartSidebar({
                                 ✕ Has alcanzado el stock máximo ({availableStock})
                               </p>
                             )}
-
                           </div>
 
                           {/* Quantity Controls */}
