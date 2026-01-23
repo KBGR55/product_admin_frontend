@@ -32,55 +32,50 @@ export default function Header({ cartCount, onCartClick, showCart }: HeaderProps
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/30 shadow-sm">
+    <header className="header-container">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition group">
-            <div className="w-11 h-11 bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-lg group-hover:shadow-xl transition-shadow">
+          <Link href="/" className="header-logo">
+            <div className="header-logo-icon">
               PA
             </div>
             <div className="hidden sm:block">
-              <span className="block text-lg font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              <span className="logo-text-gradient">
                 Product Admin
               </span>
-              <span className="block text-xs text-gray-500 font-semibold">Catálogo</span>
+              <span className="header-logo-subtitle">Catálogo</span>
             </div>
           </Link>
 
           {/* Center Navigation - Desktop */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/" className="text-gray-700 hover:text-indigo-600 font-medium transition-colors group relative">
-              Inicio
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 group-hover:w-full transition-all duration-300" />
+            <Link href="/" className="nav-link">
+              <span className="nav-link-text">Inicio</span>
+              <span className="nav-indicator" />
             </Link>
-            {token ? (
-              <Link href="/organizations" className="text-gray-700 hover:text-indigo-600 font-medium transition-colors group relative">
-                Organizaciones
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 group-hover:w-full transition-all duration-300" />
+            {token && (
+              <Link href="/organizations" className="nav-link">
+                <span className="nav-link-text">Organizaciones</span>
+                <span className="nav-indicator" />
               </Link>
-            ) : null
-            }
-            <Link href="/about-us" className="text-gray-700 hover:text-indigo-600 font-medium transition-colors group relative">
-              Sobre Nosotros
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 group-hover:w-full transition-all duration-300" />
+            )}
+            <Link href="/about-us" className="nav-link">
+              <span className="nav-link-text">Sobre Nosotros</span>
+              <span className="nav-indicator" />
             </Link>
           </nav>
-
 
           {/* Right Actions */}
           <div className="flex items-center gap-2 sm:gap-4">
             {/* Cart Button */}
             <button
               onClick={onCartClick}
-              className={`relative p-2.5 rounded-lg transition-all duration-300 group ${showCart
-                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                : 'text-gray-700 hover:bg-gray-100'
-                }`}
+              className={`cart-button ${showCart ? 'cart-button-active' : ''}`}
             >
-              <ShoppingCartIcon className="h-6 w-6 group-hover:scale-110 transition-transform" />
+              <ShoppingCartIcon className="cart-icon" />
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 via-red-600 to-rose-600 text-white text-xs font-black w-6 h-6 rounded-full flex items-center justify-center shadow-xl animate-pulse">
+                <span className="cart-count">
                   {cartCount > 9 ? '9+' : cartCount}
                 </span>
               )}
@@ -92,50 +87,50 @@ export default function Header({ cartCount, onCartClick, showCart }: HeaderProps
                 <div className="hidden sm:block relative">
                   <button
                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                    className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 rounded-lg border border-indigo-200/50 transition-all duration-200 group"
+                    className="profile-button"
                   >
-                    <UserCircleIcon className="h-5 w-5 text-indigo-600 group-hover:scale-110 transition-transform" />
-                    <span className="text-sm font-semibold text-indigo-600">Cuenta</span>
+                    <UserCircleIcon className="profile-icon" />
+                    <span className="profile-text">Cuenta</span>
                   </button>
 
                   {/* Dropdown Menu */}
                   {profileMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden animate-in slide-in-from-top duration-200 z-50">
-                      <div className="px-4 py-3 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200">
-                        <p className="text-sm font-semibold text-gray-900">Mi Cuenta</p>
-                        <p className="text-xs text-gray-600">usuario@example.com</p>
+                    <div className="dropdown-menu">
+                      <div className="dropdown-header">
+                        <p className="dropdown-title">Mi Cuenta</p>
+                        <p className="dropdown-subtitle">usuario@example.com</p>
                       </div>
 
-                      <div className="space-y-1 p-2">
+                      <div className="dropdown-list">
                         <Link
                           href="/profile"
-                          className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors font-medium"
+                          className="dropdown-item"
                           onClick={() => setProfileMenuOpen(false)}
                         >
-                          <UserCircleIcon className="h-5 w-5" />
-                          Mi Perfil
+                          <UserCircleIcon className="dropdown-item-icon" />
+                          <span>Mi Perfil</span>
                         </Link>
 
                         <Link
                           href="/settings"
-                          className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors font-medium"
+                          className="dropdown-item"
                           onClick={() => setProfileMenuOpen(false)}
                         >
-                          <Cog6ToothIcon className="h-5 w-5" />
-                          Configuración
+                          <Cog6ToothIcon className="dropdown-item-icon" />
+                          <span>Configuración</span>
                         </Link>
 
-                        <div className="border-t border-gray-200 my-1" />
+                        <div className="dropdown-divider" />
 
                         <button
                           onClick={() => {
                             setProfileMenuOpen(false)
                             handleLogout()
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium"
+                          className="dropdown-item logout-item"
                         >
-                          <ArrowRightOnRectangleIcon className="h-5 w-5" />
-                          Salir
+                          <ArrowRightOnRectangleIcon className="dropdown-item-icon" />
+                          <span>Salir</span>
                         </button>
                       </div>
                     </div>
@@ -145,22 +140,22 @@ export default function Header({ cartCount, onCartClick, showCart }: HeaderProps
             ) : (
               <Link
                 href="/auth/login"
-                className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 text-indigo-600 font-semibold hover:bg-indigo-50 rounded-lg transition-all duration-200 group border border-transparent hover:border-indigo-200"
+                className="login-button"
               >
-                <UserIcon className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                Iniciar sesión
+                <UserIcon className="login-icon" />
+                <span>Iniciar sesión</span>
               </Link>
             )}
 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2.5 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              className="mobile-menu-button"
             >
               {mobileMenuOpen ? (
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="mobile-menu-icon" />
               ) : (
-                <Bars3Icon className="h-6 w-6" />
+                <Bars3Icon className="mobile-menu-icon" />
               )}
             </button>
           </div>
@@ -168,17 +163,17 @@ export default function Header({ cartCount, onCartClick, showCart }: HeaderProps
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200/50 py-4 space-y-3 animate-in slide-in-from-top duration-300">
+          <div className="mobile-menu">
             <Link
               href="/"
-              className="block px-4 py-2.5 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors font-semibold"
+              className="mobile-menu-item"
               onClick={() => setMobileMenuOpen(false)}
             >
               Inicio
             </Link>
             <Link
               href="/about-us"
-              className="block px-4 py-2.5 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors font-semibold"
+              className="mobile-menu-item"
               onClick={() => setMobileMenuOpen(false)}
             >
               Sobre Nosotros
@@ -187,28 +182,28 @@ export default function Header({ cartCount, onCartClick, showCart }: HeaderProps
               <>
                 <Link
                   href="/organizations"
-                  className="block px-4 py-2.5 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors font-semibold"
+                  className="mobile-menu-item"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Organizaciones
                 </Link>
-                <div className="border-t border-gray-200/50 pt-3 space-y-2">
+                <div className="mobile-menu-section">
                   <Link
                     href="/profile"
-                    className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors font-semibold"
+                    className="mobile-menu-item-with-icon"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <UserCircleIcon className="h-5 w-5" />
-                    Mi Perfil
+                    <UserCircleIcon className="mobile-menu-item-icon" />
+                    <span>Mi Perfil</span>
                   </Link>
 
                   <Link
                     href="/settings"
-                    className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors font-semibold"
+                    className="mobile-menu-item-with-icon"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <Cog6ToothIcon className="h-5 w-5" />
-                    Configuración
+                    <Cog6ToothIcon className="mobile-menu-item-icon" />
+                    <span>Configuración</span>
                   </Link>
 
                   <button
@@ -216,17 +211,17 @@ export default function Header({ cartCount, onCartClick, showCart }: HeaderProps
                       setMobileMenuOpen(false)
                       handleLogout()
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg transition-all font-semibold"
+                    className="mobile-logout-button"
                   >
-                    <ArrowRightOnRectangleIcon className="h-5 w-5" />
-                    Salir
+                    <ArrowRightOnRectangleIcon className="mobile-logout-icon" />
+                    <span>Salir</span>
                   </button>
                 </div>
               </>
             ) : (
               <Link
                 href="/auth/login"
-                className="block px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg transition-all font-semibold hover:shadow-lg"
+                className="mobile-login-button"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Iniciar sesión
