@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ShoppingCartIcon, Bars3Icon, XMarkIcon, UserIcon, ArrowRightOnRectangleIcon, Cog6ToothIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import { getToken, limpiarToken } from '@/utilities/api'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface HeaderProps {
   cartCount: number
@@ -16,7 +16,15 @@ export default function Header({ cartCount, onCartClick, showCart }: HeaderProps
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
-  const token = getToken()
+  const [token, setToken] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    setToken(getToken())
+  }, [])
+
+  if (!mounted) return null
 
   const handleLogout = () => {
     limpiarToken()
